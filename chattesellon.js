@@ -1,57 +1,53 @@
 
 /* =====================================
    CHATTESELLON
-   PUBLIC MESSAGE BOARD
+   SUPABASE PUBLIC MESSAGE BOARD
 ===================================== */
 
-const STORAGE_KEY = "chattesellon_posts";
+const SUPABASE_URL = "https://ywxkqpidkgagbnixoegv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol";
+
+const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+const VISITOR_KEY = "chattesellon_visitor_id";
+
+let visitorId = localStorage.getItem(VISITOR_KEY);
+
+if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    localStorage.setItem(VISITOR_KEY, visitorId);
+}
 
 let posts = [];
 let selectedImage = null;
 let selectedGif = null;
 
-
-// =====================================
-// STORAGE
-// =====================================
-
-function loadPosts() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        posts = saved ? JSON.parse(saved) : [];
-
-        if (!Array.isArray(posts)) {
-            posts = [];
-        }
-    } catch (error) {
-        console.error("Could not load posts:", error);
-        posts = [];
-    }
-}
-
-function savePosts() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-        return true;
-    } catch (error) {
-        alert(
-            "Не удалось сохранить публикацию. " +
-            "Возможно, закончилось место в хранилище браузера."
-        );
-
-        console.error(error);
-        return false;
-    }
-}
+const emojis = [
+    "🤍", "🖤", "💙", "💜", "❤️",
+    "♡", "♥", "☆", "★", "✦",
+    "✧", "✩", "✪", "✿", "❀",
+    "☾", "☽", "☁", "☂", "❄",
+    "🌙", "⭐", "🌌", "🪐", "✨",
+    "🌸", "🌷", "🦋", "🐈", "🐈‍⬛",
+    "🐇", "🕊️", "🍓", "🍰", "🎀",
+    "🎧", "🎮", "🎨", "📷", "💌"
+];
 
 
-// =====================================
-// HELPERS
-// =====================================
+/* =====================================
+   HELPERS
+===================================== */
 
-function createId() {
-    return Date.now().toString(36) +
-        Math.random().toString(36).slice(2, 9);
+function makeElement(tag, className, text) {
+    const el = document.createElement(tag);
+
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = text;
+
+    return el;
 }
 
 function validUrl(value) {
@@ -81,52 +77,37 @@ function formatDate(date) {
     });
 }
 
-function makeElement(tag, className, text) {
-    const element = document.createElement(tag);
-
-    if (className) {
-        element.className = className;
-    }
-
-    if (text !== undefined) {
-        element.textContent = text;
-    }
-
-    return element;
+function showError(error) {
+    console.error(error);
+    alert("Ошибка: " + (error.message || "Не удалось выполнить действие."));
 }
 
 
-// =====================================
-// EMOJI PICKER
-// =====================================
+/* =====================================
+   ELEMENTS
+===================================== */
 
-const emojis = [
-    "🤍", "🖤", "💙", "💜", "❤️",
-    "♡", "♥", "☆", "★", "✦",
-    "✧", "✩", "✪", "✿", "❀",
-    "☾", "☽", "☁", "☂", "❄",
-    "🌙", "⭐", "🌌", "🪐", "✨",
-    "🌸", "🌷", "🦋", "🐈", "🐈‍⬛",
-    "🐇", "🕊️", "🍓", "🍰", "🎀",
-    "🎧", "🎮", "🎨", "📷", "💌"
-];
+const postForm = document.getElementById("postForm");
+const postText = document.getElementById("postText");
+const postsContainer = document.getElementById("postsContainer");
+const emptyFeed = document.getElementById("emptyFeed");
+
+const imageUpload = document.getElementById("imageUpload");
+const imagePreview = document.getElementById("imagePreview");
 
 const emojiPicker = document.getElementById("emojiPicker");
 const emojiList = document.getElementById("emojiList");
-const postText = document.getElementById("postText");
 
-function createEmojiPicker() {
-    emojis.forEach(emoji => {
-        const button = makeElement("button", "", emoji);
-        button.type = "button";
+const gifInputPanel = document.getElementById("gifInputPanel");
+const gifUrl = document.getElementById("gifUrl");
 
-        button.addEventListener("click", () => {
-            insertEmoji(postText, emoji);
-        });
+const characterCounter =
+    document.getElementById("characterCounter");
 
-        emojiList.appendChild(button);
-    });
-}
+
+/* =====================================
+   EMOJI PICKER
+===================================== */
 
 function insertEmoji(input, emoji) {
     const start = input.selectionStart;
@@ -142,26 +123,35 @@ function insertEmoji(input, emoji) {
     const position = start + emoji.length;
 
     input.setSelectionRange(position, position);
-
     updateCounter();
+}
+
+function createEmojiPicker() {
+    emojiList.replaceChildren();
+
+    emojis.forEach(emoji => {
+        const button = makeElement("button", "", emoji);
+        button.type = "button";
+
+        button.addEventListener("click", () => {
+            insertEmoji(postText, emoji);
+        });
+
+        emojiList.appendChild(button);
+    });
 }
 
 document.getElementById("emojiButton")
     .addEventListener("click", () => {
-
         emojiPicker.hidden = !emojiPicker.hidden;
-
     });
 
 createEmojiPicker();
 
 
-// =====================================
-// CHARACTER COUNTER
-// =====================================
-
-const characterCounter =
-    document.getElementById("characterCounter");
+/* =====================================
+   CHARACTER COUNTER
+===================================== */
 
 function updateCounter() {
     characterCounter.textContent =
@@ -171,18 +161,11 @@ function updateCounter() {
 postText.addEventListener("input", updateCounter);
 
 
-// =====================================
-// IMAGE UPLOAD
-// =====================================
-
-const imageUpload =
-    document.getElementById("imageUpload");
-
-const imagePreview =
-    document.getElementById("imagePreview");
+/* =====================================
+   IMAGE UPLOAD
+===================================== */
 
 imageUpload.addEventListener("change", () => {
-
     const file = imageUpload.files[0];
 
     if (!file) return;
@@ -202,7 +185,6 @@ imageUpload.addEventListener("change", () => {
     const reader = new FileReader();
 
     reader.onload = () => {
-
         selectedImage = reader.result;
 
         imagePreview.replaceChildren();
@@ -213,47 +195,33 @@ imageUpload.addEventListener("change", () => {
 
         imagePreview.appendChild(image);
 
-        const removeButton =
-            makeElement("button", "", "✕");
+        const remove = makeElement("button", "", "✕");
+        remove.type = "button";
 
-        removeButton.type = "button";
-
-        removeButton.addEventListener("click", () => {
-
+        remove.addEventListener("click", () => {
             selectedImage = null;
             imageUpload.value = "";
             imagePreview.replaceChildren();
-
         });
 
-        imagePreview.appendChild(removeButton);
+        imagePreview.appendChild(remove);
     };
 
     reader.readAsDataURL(file);
-
 });
 
 
-// =====================================
-// GIF URL
-// =====================================
-
-const gifInputPanel =
-    document.getElementById("gifInputPanel");
-
-const gifUrl =
-    document.getElementById("gifUrl");
+/* =====================================
+   GIF
+===================================== */
 
 document.getElementById("gifButton")
     .addEventListener("click", () => {
-
         gifInputPanel.hidden = !gifInputPanel.hidden;
-
     });
 
 document.getElementById("addGifButton")
     .addEventListener("click", () => {
-
         const url = validUrl(gifUrl.value.trim());
 
         if (!url) {
@@ -273,33 +241,121 @@ document.getElementById("addGifButton")
 
         gifInputPanel.hidden = true;
         gifUrl.value = "";
-
     });
 
 
-// =====================================
-// CREATE POST
-// =====================================
+/* =====================================
+   LOAD DATA
+===================================== */
 
-const postForm = document.getElementById("postForm");
+async function loadPosts() {
+    const { data: postData, error: postError } =
+        await supabase
+            .from("posts")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-postForm.addEventListener("submit", event => {
+    if (postError) {
+        showError(postError);
+        return;
+    }
 
+    const { data: replyData, error: replyError } =
+        await supabase
+            .from("replies")
+            .select("*")
+            .order("created_at", { ascending: true });
+
+    if (replyError) {
+        showError(replyError);
+        return;
+    }
+
+    const { data: likeData, error: likeError } =
+        await supabase
+            .from("likes")
+            .select("*");
+
+    if (likeError) {
+        showError(likeError);
+        return;
+    }
+
+    const repliesById = new Map();
+
+    replyData.forEach(reply => {
+        repliesById.set(reply.id, {
+            ...reply,
+            text: reply.content,
+            avatar: reply.avatar_url,
+            date: reply.created_at,
+            likes: 0,
+            liked: false,
+            replies: []
+        });
+    });
+
+    posts = postData.map(post => ({
+        ...post,
+        text: post.content,
+        avatar: post.avatar_url,
+        image: post.image_url,
+        gif: post.gif_url,
+        date: post.created_at,
+        likes: 0,
+        liked: false,
+        replies: []
+    }));
+
+    const postMap = new Map(posts.map(post => [post.id, post]));
+
+    replyData.forEach(reply => {
+        const item = repliesById.get(reply.id);
+
+        if (reply.parent_reply_id) {
+            const parent = repliesById.get(reply.parent_reply_id);
+
+            if (parent) parent.replies.push(item);
+        } else {
+            const root = postMap.get(reply.post_id);
+
+            if (root) root.replies.push(item);
+        }
+    });
+
+    likeData.forEach(like => {
+        const post = postMap.get(like.post_id);
+
+        if (post) {
+            post.likes++;
+
+            if (like.visitor_id === visitorId) {
+                post.liked = true;
+            }
+        }
+    });
+
+    renderPosts();
+}
+
+
+/* =====================================
+   CREATE POST
+===================================== */
+
+postForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     const nickname =
-        document.getElementById("nickname")
-            .value.trim();
+        document.getElementById("nickname").value.trim();
 
     const avatar =
-        validUrl(
-            document.getElementById("avatarUrl").value.trim()
-        );
+        validUrl(document.getElementById("avatarUrl").value.trim());
 
     const message = postText.value.trim();
 
-    if (!nickname) {
-        alert("Введи никнейм.");
+    if (!nickname || nickname.length > 30) {
+        alert("Никнейм должен содержать от 1 до 30 символов.");
         return;
     }
 
@@ -308,23 +364,18 @@ postForm.addEventListener("submit", event => {
         return;
     }
 
-    const post = {
-        id: createId(),
-        nickname: nickname,
-        avatar: avatar,
-        text: message,
-        image: selectedImage,
-        gif: selectedGif,
-        date: Date.now(),
-        likes: 0,
-        liked: false,
-        replies: []
-    };
+    const { error } = await supabase
+        .from("posts")
+        .insert({
+            nickname: nickname,
+            avatar_url: avatar || null,
+            content: message,
+            image_url: selectedImage,
+            gif_url: selectedGif
+        });
 
-    posts.unshift(post);
-
-    if (!savePosts()) {
-        posts.shift();
+    if (error) {
+        showError(error);
         return;
     }
 
@@ -338,48 +389,38 @@ postForm.addEventListener("submit", event => {
     emojiPicker.hidden = true;
 
     updateCounter();
-    renderPosts();
-
+    await loadPosts();
 });
 
 
-// =====================================
-// FIND POST OR REPLY
-// =====================================
+/* =====================================
+   FIND MESSAGE
+===================================== */
 
 function findMessage(list, id) {
-
     for (const item of list) {
-
-        if (item.id === id) {
-            return item;
-        }
+        if (item.id === id) return item;
 
         const found = findMessage(item.replies || [], id);
 
-        if (found) {
-            return found;
-        }
-
+        if (found) return found;
     }
 
     return null;
 }
 
 
-// =====================================
-// CREATE REPLY FORM
-// =====================================
+/* =====================================
+   REPLY FORM
+===================================== */
 
 function createReplyForm(rootId, parentId) {
-
     const form = makeElement("form", "reply-form");
 
     form.dataset.rootId = rootId;
     form.dataset.parentId = parentId;
 
     const nickname = makeElement("input");
-
     nickname.type = "text";
     nickname.placeholder = "Your nickname...";
     nickname.maxLength = 30;
@@ -387,13 +428,11 @@ function createReplyForm(rootId, parentId) {
     nickname.name = "nickname";
 
     const avatar = makeElement("input");
-
     avatar.type = "url";
     avatar.placeholder = "Avatar URL (optional)";
     avatar.name = "avatar";
 
     const textarea = makeElement("textarea");
-
     textarea.placeholder = "Write a reply...";
     textarea.maxLength = 2000;
     textarea.required = true;
@@ -402,31 +441,25 @@ function createReplyForm(rootId, parentId) {
     const controls = makeElement("div", "reply-form-controls");
 
     const cancel = makeElement("button", "", "CANCEL");
-
     cancel.type = "button";
 
-    cancel.addEventListener("click", () => {
-        form.remove();
-    });
+    cancel.addEventListener("click", () => form.remove());
 
     const send = makeElement("button", "", "REPLY ✦");
-
     send.type = "submit";
 
     controls.append(cancel, send);
-
     form.append(nickname, avatar, textarea, controls);
 
     return form;
 }
 
 
-// =====================================
-// RENDER MESSAGE
-// =====================================
+/* =====================================
+   RENDER MESSAGE
+===================================== */
 
 function renderMessage(item, rootId, isReply = false) {
-
     const wrapper = makeElement(
         "article",
         isReply ? "reply" : "post"
@@ -437,9 +470,7 @@ function renderMessage(item, rootId, isReply = false) {
     const header = makeElement("div", "post-header");
 
     if (item.avatar) {
-
         const avatar = makeElement("img", "post-avatar");
-
         avatar.src = item.avatar;
         avatar.alt = item.nickname;
 
@@ -450,13 +481,10 @@ function renderMessage(item, rootId, isReply = false) {
         });
 
         header.appendChild(avatar);
-
     } else {
-
         header.appendChild(
             makeElement("div", "post-avatar", "✦")
         );
-
     }
 
     const authorInfo = makeElement("div");
@@ -470,56 +498,29 @@ function renderMessage(item, rootId, isReply = false) {
     );
 
     header.appendChild(authorInfo);
-
     wrapper.appendChild(header);
 
-
-    // MESSAGE TEXT
-
     if (item.text) {
-
-        const content = makeElement(
-            "div",
-            "post-content",
-            item.text
+        wrapper.appendChild(
+            makeElement("div", "post-content", item.text)
         );
-
-        wrapper.appendChild(content);
-
     }
 
-
-    // IMAGE
-
     if (item.image) {
-
         const image = makeElement("img", "post-image");
-
         image.src = item.image;
         image.alt = "Attached image";
         image.loading = "lazy";
-
         wrapper.appendChild(image);
-
     }
 
-
-    // GIF
-
     if (item.gif) {
-
         const gif = makeElement("img", "post-image");
-
         gif.src = item.gif;
         gif.alt = "GIF";
         gif.loading = "lazy";
-
         wrapper.appendChild(gif);
-
     }
-
-
-    // ACTIONS
 
     const actions = makeElement("div", "post-actions");
 
@@ -542,54 +543,35 @@ function renderMessage(item, rootId, isReply = false) {
     replyButton.dataset.action = "reply";
 
     actions.append(likeButton, replyButton);
-
     wrapper.appendChild(actions);
 
-
-    // NESTED REPLIES
-
-    if (item.replies && item.replies.length > 0) {
-
-        const repliesContainer =
-            makeElement("div", "replies-container");
+    if (item.replies && item.replies.length) {
+        const container = makeElement("div", "replies-container");
 
         item.replies.forEach(reply => {
-
-            repliesContainer.appendChild(
+            container.appendChild(
                 renderMessage(reply, rootId, true)
             );
-
         });
 
-        wrapper.appendChild(repliesContainer);
-
+        wrapper.appendChild(container);
     }
 
     return wrapper;
 }
 
 
-// =====================================
-// RENDER POSTS
-// =====================================
-
-const postsContainer =
-    document.getElementById("postsContainer");
-
-const emptyFeed =
-    document.getElementById("emptyFeed");
+/* =====================================
+   RENDER POSTS
+===================================== */
 
 function renderPosts() {
-
     postsContainer.replaceChildren();
 
-    if (posts.length === 0) {
-
+    if (!posts.length) {
         postsContainer.appendChild(emptyFeed);
         emptyFeed.hidden = false;
-
         return;
-
     }
 
     emptyFeed.hidden = true;
@@ -603,30 +585,26 @@ function renderPosts() {
     }
 
     sortedPosts.forEach(post => {
-
         postsContainer.appendChild(
             renderMessage(post, post.id)
         );
-
     });
-
 }
 
 
-// =====================================
-// POST SORTING
-// =====================================
+/* =====================================
+   SORTING
+===================================== */
 
 document.getElementById("sortPosts")
     .addEventListener("change", renderPosts);
 
 
-// =====================================
-// LIKE AND REPLY BUTTONS
-// =====================================
+/* =====================================
+   LIKE AND REPLY BUTTONS
+===================================== */
 
-postsContainer.addEventListener("click", event => {
-
+postsContainer.addEventListener("click", async event => {
     const button = event.target.closest("button[data-action]");
 
     if (!button) return;
@@ -636,30 +614,46 @@ postsContainer.addEventListener("click", event => {
     if (!messageElement) return;
 
     const id = messageElement.dataset.itemId;
-
     const item = findMessage(posts, id);
 
     if (!item) return;
 
-
     if (button.dataset.action === "like") {
-
-        item.liked = !item.liked;
-
-        item.likes = Math.max(
-            0,
-            item.likes + (item.liked ? 1 : -1)
-        );
-
-        if (savePosts()) {
-            renderPosts();
+        if (item.id !== id || !posts.some(post => post.id === id)) {
+            alert("Пока лайки доступны только для публикаций.");
+            return;
         }
 
+        button.disabled = true;
+
+        let result;
+
+        if (item.liked) {
+            result = await supabase
+                .from("likes")
+                .delete()
+                .eq("post_id", id)
+                .eq("visitor_id", visitorId);
+        } else {
+            result = await supabase
+                .from("likes")
+                .insert({
+                    post_id: id,
+                    visitor_id: visitorId
+                });
+        }
+
+        button.disabled = false;
+
+        if (result.error) {
+            showError(result.error);
+            return;
+        }
+
+        await loadPosts();
     }
 
-
     if (button.dataset.action === "reply") {
-
         const existing =
             messageElement.querySelector(":scope > .reply-form");
 
@@ -677,20 +671,16 @@ postsContainer.addEventListener("click", event => {
         const form = createReplyForm(rootPost.id, id);
 
         messageElement.appendChild(form);
-
         form.querySelector("input").focus();
-
     }
-
 });
 
 
-// =====================================
-// SEND REPLY
-// =====================================
+/* =====================================
+   SEND REPLY
+===================================== */
 
-postsContainer.addEventListener("submit", event => {
-
+postsContainer.addEventListener("submit", async event => {
     const form = event.target.closest(".reply-form");
 
     if (!form) return;
@@ -700,54 +690,47 @@ postsContainer.addEventListener("submit", event => {
     const rootId = form.dataset.rootId;
     const parentId = form.dataset.parentId;
 
-    const nickname =
-        form.elements.nickname.value.trim();
+    const nickname = form.elements.nickname.value.trim();
 
-    const avatar =
-        validUrl(form.elements.avatar.value.trim());
+    const avatar = validUrl(
+        form.elements.avatar.value.trim()
+    );
 
-    const message =
-        form.elements.message.value.trim();
+    const message = form.elements.message.value.trim();
 
-    if (!nickname || !message) return;
-
-    const rootPost = posts.find(post => post.id === rootId);
-
-    if (!rootPost) return;
-
-    const parent = findMessage([rootPost], parentId);
-
-    if (!parent) return;
-
-    const reply = {
-        id: createId(),
-        nickname: nickname,
-        avatar: avatar,
-        text: message,
-        date: Date.now(),
-        likes: 0,
-        liked: false,
-        replies: []
-    };
-
-    parent.replies.push(reply);
-
-    if (!savePosts()) {
-        parent.replies.pop();
+    if (!nickname || nickname.length > 30 || !message) {
+        alert("Проверь никнейм и текст ответа.");
         return;
     }
 
-    renderPosts();
+    const { error } = await supabase
+        .from("replies")
+        .insert({
+            post_id: rootId,
+            parent_reply_id:
+                parentId === rootId ? null : parentId,
+            nickname: nickname,
+            avatar_url: avatar || null,
+            content: message
+        });
 
+    if (error) {
+        showError(error);
+        return;
+    }
+
+    await loadPosts();
 });
 
 
-// =====================================
-// START
-// =====================================
+/* =====================================
+   START
+===================================== */
 
 loadPosts();
-renderPosts();
 updateCounter();
 
-      
+setInterval(() => {
+    loadPosts();
+}, 10000);
+       
