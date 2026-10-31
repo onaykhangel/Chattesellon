@@ -1,9 +1,9 @@
-
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chats</title>
+    <title>Chat te Selłóñ</title>
 
     <link rel="stylesheet" href="chattesellon.css">
 </head>
@@ -14,9 +14,7 @@
     <main class="chat-container">
 
         <!-- HEADER -->
-
         <header class="chat-header">
-
             <div class="header-title">
                 <h1>Chat te Selłóñ</h1>
                 <p>full anonymous board.</p>
@@ -26,42 +24,26 @@
                 <a href="index.html">HOME</a>
                 <a href="index.html">BACK</a>
             </nav>
-
         </header>
 
 
         <!-- INTRODUCTION -->
-
         <section class="welcome-panel">
-
             <h2>Welcome to Chat te Selłóñ.</h2>
-
-            <p>
-                full anonymous. share your thoughts.
-            </p>
-
-            <span class="online-status">
-                ✦ COMMUNITY BOARD
-            </span>
-
+            <p>full anonymous. share your thoughts.</p>
+            <span class="online-status">✦ COMMUNITY BOARD</span>
         </section>
 
 
         <!-- CREATE POST -->
-
         <section class="create-post-panel">
-
             <h2>NEW PUBLICATION</h2>
 
             <form id="postForm">
 
                 <div class="profile-inputs">
-
                     <div class="avatar-input">
-                        <label for="avatarUrl">
-                            AVATAR URL
-                        </label>
-
+                        <label for="avatarUrl">AVATAR URL</label>
                         <input
                             type="url"
                             id="avatarUrl"
@@ -70,10 +52,7 @@
                     </div>
 
                     <div class="nickname-input">
-                        <label for="nickname">
-                            NICKNAME
-                        </label>
-
+                        <label for="nickname">NICKNAME</label>
                         <input
                             type="text"
                             id="nickname"
@@ -82,33 +61,22 @@
                             required
                         >
                     </div>
-
                 </div>
 
-
                 <div class="message-input">
-
-                    <label for="postText">
-                        MESSAGE
-                    </label>
-
+                    <label for="postText">MESSAGE</label>
                     <textarea
                         id="postText"
                         placeholder="Write something..."
                         maxlength="2000"
                     ></textarea>
-
                 </div>
 
-
                 <!-- ATTACHMENTS -->
-
                 <div class="attachment-panel">
-
                     <label for="imageUpload" class="attachment-button">
                         <span>＋</span> IMAGE
                     </label>
-
                     <input
                         type="file"
                         id="imageUpload"
@@ -120,211 +88,75 @@
                         type="button"
                         id="emojiButton"
                         class="attachment-button"
-                    >
-                        ☺ EMOJI
-                    </button>
+                    >☺ EMOJI</button>
 
                     <button
                         type="button"
                         id="gifButton"
                         class="attachment-button"
-                    >
-                        GIF
-                    </button>
-
+                    >GIF</button>
                 </div>
 
-
                 <!-- EMOJI PICKER -->
-
-                <div
-                    class="emoji-picker"
-                    id="emojiPicker"
-                    hidden
-                >
+                <div class="emoji-picker" id="emojiPicker" hidden>
                     <div class="emoji-list" id="emojiList"></div>
                 </div>
 
-
                 <!-- GIF INPUT -->
-
-                <div
-                    class="gif-input-panel"
-                    id="gifInputPanel"
-                    hidden
-                >
-
+                <div class="gif-input-panel" id="gifInputPanel" hidden>
                     <input
                         type="url"
                         id="gifUrl"
                         placeholder="Paste GIF URL..."
                     >
-
-                    <button
-                        type="button"
-                        id="addGifButton"
-                    >
-                        ADD GIF
-                    </button>
-
+                    <button type="button" id="addGifButton">ADD GIF</button>
                 </div>
 
-
                 <!-- IMAGE PREVIEW -->
-
-                <div
-                    class="image-preview"
-                    id="imagePreview"
-                ></div>
-
+                <div class="image-preview" id="imagePreview"></div>
 
                 <div class="publish-controls">
-
-                    <span class="character-counter" id="characterCounter">
-                        0 / 2000
-                    </span>
-
-                    <button type="submit" class="publish-button">
-                        PUBLISH ✦
-                    </button>
-
+                    <span class="character-counter" id="characterCounter">0 / 2000</span>
+                    <button type="submit" class="publish-button">PUBLISH ✦</button>
                 </div>
 
             </form>
-
         </section>
 
 
         <!-- POSTS FILTER -->
-
         <section class="feed-section">
-
             <div class="feed-heading">
-
                 <h2>PUBLIC FEED</h2>
-
                 <select id="sortPosts">
                     <option value="newest">Newest first</option>
                     <option value="oldest">Oldest first</option>
                 </select>
-
             </div>
-
 
             <!-- POSTS WILL APPEAR HERE -->
-
             <div class="posts-container" id="postsContainer">
-
                 <div class="empty-feed" id="emptyFeed">
-
                     <span>✦</span>
-
                     <p>No publications yet.</p>
-
                     <p>Be the first to leave a message.</p>
-
                 </div>
-
             </div>
-
         </section>
 
 
         <!-- FOOTER -->
-
         <footer class="chat-footer">
-
             <p>CHAT TE SELŁÓÑ © 2026</p>
-
             <p>ANONYMOUS BOARD</p>
-
         </footer>
 
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="chattesellon.js"></script>
-    <script>
-alert("ПРОВЕРКА: HTML ДОШЁЛ ДО ЭТОГО МЕСТА");
-    </script>
-    <script>
-(async function () {
-    const box = document.createElement("pre");
+    <!-- Supabase CDN — обязательно ДО твоего JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    box.style.cssText = `
-        background: white;
-        color: black;
-        padding: 15px;
-        margin: 15px;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        border: 2px solid black;
-        font-size: 14px;
-    `;
-
-    box.textContent = "ПРОВЕРКА SUPABASE...\n";
-    document.body.appendChild(box);
-
-    function log(message) {
-        box.textContent += message + "\n";
-    }
-
-    try {
-        log("1. JavaScript работает.");
-
-        if (!window.supabase) {
-            log("ОШИБКА: библиотека Supabase не загрузилась.");
-            return;
-        }
-
-        log("2. Библиотека Supabase загружена.");
-
-        const client = window.supabase.createClient(
-            "https://ywxkqpidkgagbnixoegv.supabase.co",
-            "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol"
-        );
-
-        log("3. Клиент Supabase создан.");
-        log("4. Проверяем таблицу posts...");
-
-        const { data, error } = await client
-            .from("posts")
-            .select("id")
-            .limit(1);
-
-        if (error) {
-            log("ОШИБКА ПРИ ОБРАЩЕНИИ К БАЗЕ:");
-            log("Код: " + error.code);
-            log("Сообщение: " + error.message);
-            log("Подробности: " + error.details);
-            log("Подсказка: " + error.hint);
-            return;
-        }
-
-        log("5. ЗАПРОС К SUPABASE УСПЕШЕН!");
-        log("Получено строк: " + data.length);
-
-        const { data: testPost, error: insertError } = await client
-    .from("posts")
-    .insert({
-        nickname: "SupabaseTest",
-        content: "Тестовая публикация"
-    })
-    .select();
-
-if (insertError) {
-    log("ОШИБКА СОЗДАНИЯ ПУБЛИКАЦИИ:");
-    log(insertError.message);
-    log(insertError.code);
-} else {
-    log("ПУБЛИКАЦИЯ СОЗДАНА!");
-    log(JSON.stringify(testPost));
-}
-    } catch (error) {
-        log("КРИТИЧЕСКАЯ ОШИБКА:");
-        log(error.message);
-    }
-})();
-    </script>
+    <!-- Твой JS — в конце body, DOM уже построен -->
+    <script src="chattesellon.js"></script>
 </body>
 </html>
