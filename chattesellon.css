@@ -1,6 +1,5 @@
-
 /* ==============================
-   GENERAL
+   RESET & BASE
 ============================== */
 
 * {
@@ -15,10 +14,23 @@ html {
 
 body {
     min-height: 100vh;
-    background: linear-gradient (black,#050711);
+    background: linear-gradient(black, #050711);
     color: #F1F2F7;
     font-family: Arial, sans-serif;
     overflow-x: hidden;
+}
+
+/* Универсальный фикс: атрибут hidden всегда побеждает display */
+[hidden] {
+    display: none !important;
+}
+
+a, button, select, label {
+    cursor: pointer;
+}
+
+input, textarea {
+    cursor: text;
 }
 
 
@@ -45,13 +57,8 @@ body {
 }
 
 @keyframes falling {
-    from {
-        transform: translateY(-30px) rotate(0deg);
-    }
-
-    to {
-        transform: translateY(110vh) rotate(360deg);
-    }
+    from { transform: translateY(-30px) rotate(0deg); }
+    to   { transform: translateY(110vh) rotate(360deg); }
 }
 
 
@@ -62,10 +69,8 @@ body {
 .chat-container {
     position: relative;
     z-index: 1;
-
     width: 92%;
     max-width: 900px;
-
     margin: 40px auto;
     padding: 20px;
 }
@@ -79,16 +84,12 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 20px;
-
     background: rgba(12, 17, 36, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 14px;
-
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-
     margin-bottom: 20px;
 }
 
@@ -114,7 +115,6 @@ body {
     text-decoration: none;
     font-size: 12px;
     letter-spacing: 1px;
-
     transition: 0.3s;
 }
 
@@ -132,16 +132,12 @@ body {
 .create-post-panel,
 .feed-section {
     background: rgba(13, 19, 42, 0.76);
-
     border: 1px solid rgba(255, 255, 255, 0.78);
     border-radius: 14px;
-
     padding: 22px;
     margin-bottom: 20px;
-
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
 }
 
@@ -191,17 +187,12 @@ body {
 .create-post-panel textarea,
 .gif-input-panel input {
     width: 100%;
-
     padding: 13px;
-
     background: rgba(3, 6, 17, 0.8);
-
     border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: 8px;
-
     color: #FFFFFF;
     font-size: 13px;
-
     outline: none;
     transition: 0.3s;
 }
@@ -243,20 +234,16 @@ body {
 }
 
 .attachment-button {
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-
     padding: 9px 13px;
-
     background: rgba(28, 38, 70, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 7px;
-
-    color: #FFFFFF !important;
-    font-size: 11px !important;
+    color: #FFFFFF;
+    font-size: 11px;
     letter-spacing: 1px;
-
     cursor: pointer;
     transition: 0.25s;
 }
@@ -274,7 +261,6 @@ body {
 .emoji-picker {
     padding: 12px;
     margin-bottom: 15px;
-
     background: rgba(3, 6, 17, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.55);
     border-radius: 10px;
@@ -311,11 +297,9 @@ body {
 
 .gif-input-panel button {
     padding: 10px 15px;
-
     background: #202B4A;
     border: 1px solid #FFFFFF;
     border-radius: 7px;
-
     color: #FFFFFF;
     cursor: pointer;
     white-space: nowrap;
@@ -341,14 +325,30 @@ body {
     width: 100px;
     height: 100px;
     object-fit: cover;
-
     border: 1px solid #FFFFFF;
     border-radius: 8px;
 }
 
+.image-preview button {
+    align-self: flex-start;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #FFFFFF;
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.image-preview button:hover {
+    background: rgba(255, 80, 80, 0.4);
+}
+
 
 /* ==============================
-   PUBLISH BUTTON
+   PUBLISH CONTROLS
 ============================== */
 
 .publish-controls {
@@ -365,15 +365,12 @@ body {
 
 .publish-button {
     padding: 11px 22px;
-
     background: rgba(37, 49, 83, 0.9);
     border: 1px solid #FFFFFF;
     border-radius: 8px;
-
     color: #FFFFFF;
     font-size: 11px;
     letter-spacing: 2px;
-
     cursor: pointer;
     transition: 0.3s;
 }
@@ -381,6 +378,11 @@ body {
 .publish-button:hover {
     background: #46577F;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.publish-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 
@@ -440,11 +442,9 @@ body {
 .post {
     padding: 17px;
     margin-bottom: 15px;
-
     background: rgba(3, 7, 19, 0.58);
     border: 1px solid rgba(255, 255, 255, 0.55);
     border-radius: 11px;
-
     transition: 0.25s;
 }
 
@@ -461,12 +461,18 @@ body {
 }
 
 .post-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 43px;
     height: 43px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid #FFFFFF;
     background: #11182B;
+    font-size: 18px;
+    color: #FFFFFF;
+    flex-shrink: 0;
 }
 
 .post-author {
@@ -484,6 +490,7 @@ body {
     font-size: 14px;
     line-height: 1.7;
     overflow-wrap: anywhere;
+    white-space: pre-wrap;
 }
 
 .post-image {
@@ -529,14 +536,12 @@ body {
     margin-top: 15px;
     margin-left: 20px;
     padding-left: 14px;
-
     border-left: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .reply {
     padding: 12px;
     margin-top: 10px;
-
     background: rgba(25, 34, 60, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 9px;
@@ -545,6 +550,69 @@ body {
 .reply .post-avatar {
     width: 32px;
     height: 32px;
+    font-size: 14px;
+}
+
+/* Форма ответа (создаётся в JS) */
+
+.reply-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(3, 6, 17, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 9px;
+}
+
+.reply-form input,
+.reply-form textarea {
+    width: 100%;
+    padding: 9px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 12px;
+    outline: none;
+}
+
+.reply-form input:focus,
+.reply-form textarea:focus {
+    border-color: #FFFFFF;
+}
+
+.reply-form textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.reply-form-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.reply-form-controls button {
+    padding: 8px 14px;
+    background: #202B4A;
+    border: 1px solid #FFFFFF;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.reply-form-controls button:hover {
+    background: #35446D;
+}
+
+.reply-form-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 
@@ -559,19 +627,6 @@ body {
     font-size: 10px;
     letter-spacing: 2px;
     line-height: 2;
-}
-
-
-/* ==============================
-   CURSOR
-============================== */
-
-a, button, select, label {
-    cursor: pointer;
-}
-
-input, textarea {
-    cursor: text;
 }
 
 
@@ -630,4 +685,4 @@ input, textarea {
         align-items: flex-end;
     }
 
-}
+   }
