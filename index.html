@@ -301,6 +301,22 @@
         log("5. ЗАПРОС К SUPABASE УСПЕШЕН!");
         log("Получено строк: " + data.length);
 
+        const { data: testPost, error: insertError } = await client
+    .from("posts")
+    .insert({
+        nickname: "SupabaseTest",
+        content: "Тестовая публикация"
+    })
+    .select();
+
+if (insertError) {
+    log("ОШИБКА СОЗДАНИЯ ПУБЛИКАЦИИ:");
+    log(insertError.message);
+    log(insertError.code);
+} else {
+    log("ПУБЛИКАЦИЯ СОЗДАНА!");
+    log(JSON.stringify(testPost));
+}
     } catch (error) {
         log("КРИТИЧЕСКАЯ ОШИБКА:");
         log(error.message);
