@@ -1,0 +1,250 @@
+
+<html lang="eng">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats</title>
+
+    <link rel="stylesheet" href="chattesellon.css">
+</head>
+
+<body>
+
+    <div class="falling-symbols" id="fallingSymbols"></div>
+
+    <main class="chat-container">
+
+        <!-- HEADER -->
+
+        <header class="chat-header">
+
+            <div class="header-title">
+                <h1>Chat te Selłóñ</h1>
+                <p>full anonymous board.</p>
+            </div>
+
+            <nav class="header-nav">
+                <a href="index.html">HOME</a>
+                <a href="index.html">BACK</a>
+            </nav>
+
+        </header>
+
+
+        <!-- INTRODUCTION -->
+
+        <section class="welcome-panel">
+
+            <h2>Welcome to Chat te Selłóñ.</h2>
+
+            <p>
+                full anonymous. share your thoughts.
+            </p>
+
+            <span class="online-status">
+                ✦ COMMUNITY BOARD
+            </span>
+
+        </section>
+
+
+        <!-- CREATE POST -->
+
+        <section class="create-post-panel">
+
+            <h2>NEW PUBLICATION</h2>
+
+            <form id="postForm">
+
+                <div class="profile-inputs">
+
+                    <div class="avatar-input">
+                        <label for="avatarUrl">
+                            AVATAR URL
+                        </label>
+
+                        <input
+                            type="url"
+                            id="avatarUrl"
+                            placeholder="https://example.com/avatar.gif"
+                        >
+                    </div>
+
+                    <div class="nickname-input">
+                        <label for="nickname">
+                            NICKNAME
+                        </label>
+
+                        <input
+                            type="text"
+                            id="nickname"
+                            placeholder="Your nickname..."
+                            maxlength="30"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+
+                <div class="message-input">
+
+                    <label for="postText">
+                        MESSAGE
+                    </label>
+
+                    <textarea
+                        id="postText"
+                        placeholder="Write something..."
+                        maxlength="2000"
+                    ></textarea>
+
+                </div>
+
+
+                <!-- ATTACHMENTS -->
+
+                <div class="attachment-panel">
+
+                    <label for="imageUpload" class="attachment-button">
+                        <span>＋</span> IMAGE
+                    </label>
+
+                    <input
+                        type="file"
+                        id="imageUpload"
+                        accept="image/*"
+                        hidden
+                    >
+
+                    <button
+                        type="button"
+                        id="emojiButton"
+                        class="attachment-button"
+                    >
+                        ☺ EMOJI
+                    </button>
+
+                    <button
+                        type="button"
+                        id="gifButton"
+                        class="attachment-button"
+                    >
+                        GIF
+                    </button>
+
+                </div>
+
+
+                <!-- EMOJI PICKER -->
+
+                <div
+                    class="emoji-picker"
+                    id="emojiPicker"
+                    hidden
+                >
+                    <div class="emoji-list" id="emojiList"></div>
+                </div>
+
+
+                <!-- GIF INPUT -->
+
+                <div
+                    class="gif-input-panel"
+                    id="gifInputPanel"
+                    hidden
+                >
+
+                    <input
+                        type="url"
+                        id="gifUrl"
+                        placeholder="Paste GIF URL..."
+                    >
+
+                    <button
+                        type="button"
+                        id="addGifButton"
+                    >
+                        ADD GIF
+                    </button>
+
+                </div>
+
+
+                <!-- IMAGE PREVIEW -->
+
+                <div
+                    class="image-preview"
+                    id="imagePreview"
+                ></div>
+
+
+                <div class="publish-controls">
+
+                    <span class="character-counter" id="characterCounter">
+                        0 / 2000
+                    </span>
+
+                    <button type="submit" class="publish-button">
+                        PUBLISH ✦
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- POSTS FILTER -->
+
+        <section class="feed-section">
+
+            <div class="feed-heading">
+
+                <h2>PUBLIC FEED</h2>
+
+                <select id="sortPosts">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                </select>
+
+            </div>
+
+
+            <!-- POSTS WILL APPEAR HERE -->
+
+            <div class="posts-container" id="postsContainer">
+
+                <div class="empty-feed" id="emptyFeed">
+
+                    <span>✦</span>
+
+                    <p>No publications yet.</p>
+
+                    <p>Be the first to leave a message.</p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <footer class="chat-footer">
+
+            <p>CHAT TE SELŁÓÑ © 2026</p>
+
+            <p>ANONYMOUS BOARD</p>
+
+        </footer>
+
+    </main>
+
+
+    <script src="chattesellon.js"></script>
+
+</body>
+</html>
