@@ -573,9 +573,5 @@ function initializeBoard() {
         updateCounter();
         loadPosts();
 
-      // Realtime вместо setInterval
-supabase.channel("posts-live")
-    .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
-    .on("postgres_changes", { event: "*", schema: "public", table: "replies" }, () => loadPosts())
-    .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, () => loadPosts())
-    .subscribe();
+      // Автообновление ленты каждые 15 секунд
+setInterval(loadPosts, 15000);
