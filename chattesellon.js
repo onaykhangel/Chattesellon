@@ -716,4 +716,215 @@ function initializeBoard() {
             replyButton.dataset.action = "reply";
 
             actions.append(likeButton, replyButton);
-            wrappe
+         
+            wrapper.appendChild(actions);
+
+            // Вложенные ответы
+            if (item.replies && item.replies.length > 0) {
+                const repliesContainer = makeElement(
+                    "div",
+                    "replies-container"
+                );
+
+                item.replies.forEach(reply => {
+                    repliesContainer.appendChild(
+                        renderMessage(reply, rootId, true)
+                    );
+                });
+
+                wrapper.appendChild(repliesContainer);
+            }
+
+            return wrapper;
+        }
+
+
+        /* =====================================
+           RENDER POSTS
+        ===================================== */
+
+        function renderPosts() {
+            postsContainer.replaceChildren();
+
+            emptyFeed.hidden = posts.length > 0;
+
+            const sortedPosts = [...posts];
+
+            if (sortPosts.value === "oldest") {
+                sortedPosts.reverse();
+            }
+
+            sortedPosts.forEach(post => {
+                postsContainer.appendChild(
+                    renderMessage(post, post.id)
+                );
+            });
+        }
+
+
+        /* =====================================
+           LIKE POSTS
+        ===================================== */
+
+        async function toggleLike(postId) {
+            const post = posts.find(item => item.id === postId);
+
+            if (!post) return;
+
+            try {
+                if (post.liked) {
+                    const { error } = await supabase
+                        .from("likes")
+                        .delete()
+                        .eq("post_id", postId)
+                        .eq("visitor_id", visitorId);
+
+                    if (error) throw error;
+
+                } else {
+                    const { error } = await supabase
+                        .from("likes")
+                        .insert({
+                            post_id: postId,
+                            visitor_id: visitorId
+                        });
+
+                    if (error) throw error;
+                }
+
+                await loadPosts();
+
+            } catch (error) {
+                showError(error);
+            }
+        }
+
+
+        /* =====================================
+           REPLY EVENTS
+        ===================================== */
+
+        postsContainer.addEventListener("click", event => {
+            const button = event.target.closest("button[data-action]");
+
+            if (!button) return;
+
+            const wrapper = button.closest("[data-item-id]");
+
+            if (!wrapper) return;
+
+            const itemId = wrapper.dataset.itemId;
+
+            if (button.dataset.action === "like") {
+                const rootPost = posts.find(post =>
+                    post.id === itemId
+                );
+
+                if (rootPost) {
+                    toggleLike(itemId);
+                }
+
+                return;
+            }
+
+            if (button.dataset.action === "reply") {
+                const existingForm = wrapper.querySelector(".reply-form");
+
+                if (existingForm) {
+                    existingForm.remove();
+                    return;
+                }
+
+                const form = createReplyForm(
+                    posts.find(post =>
+                        post.id === itemId
+                    )?.id || findRootPostId(itemId),
+                    itemId
+                );
+
+                wrapper.appendChild(form);
+            }
+        });
+
+
+        function findRootPostId(itemId) {
+            for (const post of posts) {
+                if (post.id === itemId) return post.id;
+
+                if (findMessage(post.replies, itemId)) {
+                    return post.id;
+                }
+            }
+
+            return null;
+        }
+
+
+        postsContainer.addEventListener("submit", async event => {
+            const form = event.target.closest(".reply-form");
+
+            if (!form) return;
+
+            event.preventDefault();
+
+            const nickname = form.elements.nickname.value.trim();
+            const avatar = validUrl(form.elements.avatar.value.trim());
+            const content = form.elements.message.value.trim();
+
+            if (!nickname || !content) return;
+
+            const sendButton = form.querySelector(
+                'button[type="submit"]'
+            );
+
+            sendButton.disabled = true;
+
+            try {
+                const { error } = await supabase
+                    .from("replies")
+                    .insert({
+                        post_id: form.dataset.rootId,
+                        parent_reply_id:
+                            form.dataset.parentId === form.dataset.rootId
+                                ? null
+                                : form.dataset.parentId,
+                        nickname,
+                        avatar_url: avatar || null,
+                        content
+                    });
+
+                if (error) throw error;
+
+                await loadPosts();
+
+            } catch (error) {
+                showError(error);
+                sendButton.disabled = false;
+            }
+        });
+
+
+        /* =====================================
+           SORTING
+        ===================================== */
+
+        sortPosts.addEventListener("change", renderPosts);
+
+
+        /* =====================================
+           START
+        ===================================== */
+
+        updateCounter();
+        loadPosts();
+
+        setInterval(loadPosts, 10000);
+
+        console.log("CHATTESELLON BOARD INITIALIZED");
+
+    } catch (error) {
+        console.error("INITIALIZATION ERROR:", error);
+        alert("INITIALIZATION ERROR: " + error.message);
+    }
+               }
+                                            
