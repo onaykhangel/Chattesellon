@@ -364,7 +364,10 @@ postForm.addEventListener("submit", async event => {
         return;
     }
 
-    const { error } = await supabase
+    try {
+    alert("startin' sendin'!");
+
+    const { data, error } = await supabase
         .from("posts")
         .insert({
             nickname: nickname,
@@ -372,11 +375,30 @@ postForm.addEventListener("submit", async event => {
             content: message,
             image_url: selectedImage,
             gif_url: selectedGif
-        });
+        })
+        .select();
 
     if (error) {
-        showError(error);
+        alert("SUPABASE ERROR: " + error.message);
+        console.error(error);
         return;
+    }
+
+    alert("MESSENGE SAVED!");
+
+    postForm.reset();
+    selectedImage = null;
+    selectedGif = null;
+
+    imagePreview.replaceChildren();
+    gifInputPanel.hidden = true;
+    emojiPicker.hidden = true;
+
+    updateCounter();
+    await loadPosts();
+
+} catch (error) {
+    alert("JAVASCRIPT ERROR: " + error.message);
     }
 
     postForm.reset();
