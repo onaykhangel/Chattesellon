@@ -373,106 +373,128 @@ function initializeBoard() {
            LOAD POSTS
         ===================================== */
 
-        async function loadPosts() {
-            if (isLoading) return;
 
-            isLoading = true;
+async function loadPosts() {
+    if (isLoading) return;
 
-            try {
-                const { data: postData, error: postError } =
-                    await supabase
-                        .from("posts")
-                        .select("*")
-                        .order("created_at", { ascending: false });
+    isLoading = true;
 
-                if (postError) throw postError;
+    try {
+        // 1. Загружаем публикации
+        const { data: postData, error: postError } =
+            await supabase
+                .from("posts")
+                .select("*")
+                .order("created_at", { ascending: false });
 
-                const { data: replyData, error: replyError } =
-                    await supabase
-                        .from("replies")
-                        .select("*")
-                        .order("created_at", { ascending: true });
+        if (postError) throw postError;
 
-                if (replyError) throw replyError;
+        console.log("POSTS LOADED:", postData);
 
-                const { data: likeData, error: likeError } =
-                    await supabase
-                        .from("likes")
-                        .select("*");
+        posts = (postData || []).map(post => ({
+            ...post,
+            text: post.content,
+            avatar: post.avatar_url,
+            image: post.image_url,
+            gif: post.gif_url,
+            date: post.created_at,
+            likes: 0,
+            liked: false,
+            replies: []
+        }));
 
-                if (likeError) throw likeError;
+        // 2. Сразу отображаем публикации
+        renderPosts();
 
-                const replyMap = new Map();
+        // 3. Загружаем комментарии отдельно
+        const { data: replyData, error: replyError } =
+            await supabase
+                .from("replies")
+                .select("*")
+                .order("created_at", { ascending: true });
 
-                replyData.forEach(reply => {
-                    replyMap.set(reply.id, {
-                        ...reply,
-                        text: reply.content,
-                        avatar: reply.avatar_url,
-                        date: reply.created_at,
-                        replies: []
-                    });
-                });
+        if (replyError) {
+            console.error("REPLIES ERROR:", replyError);
+        } else {
+            const replyMap = new Map();
 
-                posts = postData.map(post => ({
-                    ...post,
-                    text: post.content,
-                    avatar: post.avatar_url,
-                    image: post.image_url,
-                    gif: post.gif_url,
-                    date: post.created_at,
-                    likes: 0,
-                    liked: false,
+            replyData.forEach(reply => {
+                replyMap.set(reply.id, {
+                    ...reply,
+                    text: reply.content,
+                    avatar: reply.avatar_url,
+                    date: reply.created_at,
                     replies: []
-                }));
-
-                const postMap = new Map(
-                    posts.map(post => [post.id, post])
-                );
-
-                replyData.forEach(reply => {
-                    const item = replyMap.get(reply.id);
-
-                    if (reply.parent_reply_id) {
-                        const parent = replyMap.get(reply.parent_reply_id);
-
-                        if (parent) {
-                            parent.replies.push(item);
-                        }
-                    } else {
-                        const root = postMap.get(reply.post_id);
-
-                        if (root) {
-                            root.replies.push(item);
-                        }
-                    }
                 });
+            });
 
-                likeData.forEach(like => {
-                    const post = postMap.get(like.post_id);
+            const postMap = new Map(
+                posts.map(post => [post.id, post])
+            );
 
-                    if (post) {
-                        post.likes++;
+            replyData.forEach(reply => {
+                const item = replyMap.get(reply.id);
 
-                        if (like.visitor_id === visitorId) {
-                            post.liked = true;
-                        }
+                if (reply.parent_reply_id) {
+                    const parent = replyMap.get(reply.parent_reply_id);
+
+                    if (parent) {
+                        parent.replies.push(item);
                     }
-                });
+                } else {
+                    const root = postMap.get(reply.post_id);
 
-                renderPosts();
-
-            } catch (error) {
-                console.error("LOAD POSTS ERROR:", error);
-                emptyFeed.hidden = false;
-                emptyFeed.querySelector("p").textContent =
-                    "Could not load publications: " + error.message;
-
-            } finally {
-                isLoading = false;
-            }
+                    if (root) {
+                        root.replies.push(item);
+                    }
+                }
+            });
         }
 
+        // 4. Загружаем лайки отдельно
+        const { data: likeData, error: likeError } =
+            await supabase
+                .from("likes")
+                .select("*");
+
+        if (likeError) {
+            console.error("LIKES ERROR:", likeError);
+        } else {
+            likeData.forEach(like => {
+                const post = posts.find(
+                    post => post.id === like.post_id
+                );
+
+                if (post) {
+                    post.likes++;
+
+                    if (like.visitor_id === visitorId) {
+                        post.liked = true;
+                    }
+                }
+            });
+        }
+
+        // 5. Обновляем ленту с комментариями и лайками
+        renderPosts();
+
+    } catch (error) {
+        console.error("LOAD POSTS ERROR:", error);
+
+        emptyFeed.hidden = false;
+
+        const message = emptyFeed.querySelector("p");
+
+        if (message) {
+            message.textContent =
+                "Could not load publications: " + error.message;
+        }
+
+    } finally {
+        isLoading = false;
+    }
+}
+       
 
         /* =====================================
            CREATE POST
