@@ -244,5 +244,68 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="chattesellon.js"></script>
+    <script>
+(async function () {
+    const box = document.createElement("pre");
+
+    box.style.cssText = `
+        background: white;
+        color: black;
+        padding: 15px;
+        margin: 15px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        border: 2px solid black;
+        font-size: 14px;
+    `;
+
+    box.textContent = "ПРОВЕРКА SUPABASE...\n";
+    document.body.appendChild(box);
+
+    function log(message) {
+        box.textContent += message + "\n";
+    }
+
+    try {
+        log("1. JavaScript работает.");
+
+        if (!window.supabase) {
+            log("ОШИБКА: библиотека Supabase не загрузилась.");
+            return;
+        }
+
+        log("2. Библиотека Supabase загружена.");
+
+        const client = window.supabase.createClient(
+            "https://ywxkqpidkgagbnixoegv.supabase.co",
+            "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol"
+        );
+
+        log("3. Клиент Supabase создан.");
+        log("4. Проверяем таблицу posts...");
+
+        const { data, error } = await client
+            .from("posts")
+            .select("id")
+            .limit(1);
+
+        if (error) {
+            log("ОШИБКА ПРИ ОБРАЩЕНИИ К БАЗЕ:");
+            log("Код: " + error.code);
+            log("Сообщение: " + error.message);
+            log("Подробности: " + error.details);
+            log("Подсказка: " + error.hint);
+            return;
+        }
+
+        log("5. ЗАПРОС К SUPABASE УСПЕШЕН!");
+        log("Получено строк: " + data.length);
+
+    } catch (error) {
+        log("КРИТИЧЕСКАЯ ОШИБКА:");
+        log(error.message);
+    }
+})();
+    </script>
 </body>
 </html>
