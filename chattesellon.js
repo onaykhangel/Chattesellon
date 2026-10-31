@@ -160,7 +160,6 @@ function updateCounter() {
 
 postText.addEventListener("input", updateCounter);
 
-
 /* =====================================
    IMAGE UPLOAD
 ===================================== */
@@ -343,8 +342,7 @@ async function loadPosts() {
 
 postForm.addEventListener("submit", async event => {
     event.preventDefault();
-
-    alert("FORM WORKS!");
+alert("SUBMIT HANDLER WORKS!");
 
     const nickname = document
         .getElementById("nickname")
