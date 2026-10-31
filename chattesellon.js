@@ -79,7 +79,7 @@ minute: "2-digit"
 
 function showError(error) {
 console.error(error);
-alert("Ошибка: " + (error.message || "Не удалось выполнить действие."));
+alert("error: " + (error.message || "can't do it"));
 }
 
 /* =====================================
@@ -341,8 +341,7 @@ CREATE POST
 
 postForm.addEventListener("submit", async event => {
     event.preventDefault();
-
-    alert("FORM WORKS!");
+alert("REACHED CREATE POST!");
 
     const nickname = document
         .getElementById("nickname")
