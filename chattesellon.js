@@ -337,8 +337,6 @@ async function loadPosts() {
 
     renderPosts();
 }
-
-
 /* =====================================
    CREATE POST
 ===================================== */
@@ -346,72 +344,61 @@ async function loadPosts() {
 postForm.addEventListener("submit", async event => {
     event.preventDefault();
 
-    const nickname =
-        document.getElementById("nickname").value.trim();
+    alert("FORM WORKS!");
 
-    const avatar =
-        validUrl(document.getElementById("avatarUrl").value.trim());
+    const nickname = document
+        .getElementById("nickname")
+        .value.trim();
+
+    const avatar = validUrl(
+        document.getElementById("avatarUrl").value.trim()
+    );
 
     const message = postText.value.trim();
 
     if (!nickname || nickname.length > 30) {
-        alert("Никнейм должен содержать от 1 до 30 символов.");
+        alert("Неверный никнейм!");
         return;
     }
 
     if (!message && !selectedImage && !selectedGif) {
-        alert("Добавь текст или изображение.");
+        alert("Добавь текст или изображение!");
         return;
     }
+
+    alert("SENDING TO SUPABASE...");
 
     try {
-    alert("startin' sendin'!");
+        const { data, error } = await supabase
+            .from("posts")
+            .insert({
+                nickname: nickname,
+                avatar_url: avatar || null,
+                content: message,
+                image_url: selectedImage,
+                gif_url: selectedGif
+            })
+            .select();
 
-    const { data, error } = await supabase
-        .from("posts")
-        .insert({
-            nickname: nickname,
-            avatar_url: avatar || null,
-            content: message,
-            image_url: selectedImage,
-            gif_url: selectedGif
-        })
-        .select();
+        if (error) {
+            alert("SUPABASE ERROR: " + error.message);
+            return;
+        }
 
-    if (error) {
-        alert("SUPABASE ERROR: " + error.message);
-        console.error(error);
-        return;
+        alert("POST SAVED!");
+
+        postForm.reset();
+        selectedImage = null;
+        selectedGif = null;
+
+        imagePreview.replaceChildren();
+        updateCounter();
+
+        await loadPosts();
+
+    } catch (error) {
+        alert("JAVASCRIPT ERROR: " + error.message);
     }
-
-    alert("MESSENGE SAVED!");
-
-    postForm.reset();
-    selectedImage = null;
-    selectedGif = null;
-
-    imagePreview.replaceChildren();
-    gifInputPanel.hidden = true;
-    emojiPicker.hidden = true;
-
-    updateCounter();
-    await loadPosts();
-
-} catch (error) {
-    alert("JAVASCRIPT ERROR: " + error.message);
-    }
-
-    postForm.reset();
-
-    selectedImage = null;
-    selectedGif = null;
-
-    imagePreview.replaceChildren();
-    gifInputPanel.hidden = true;
-    emojiPicker.hidden = true;
-
-    updateCounter();
-    await loadPosts();
 });
 
 
