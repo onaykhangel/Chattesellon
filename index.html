@@ -9,8 +9,6 @@
 </head>
 
 <body>
-    <h1 style="color:red">TEST 123</h1>
-
     <div class="falling-symbols" id="fallingSymbols"></div>
 
     <main class="chat-container">
@@ -245,14 +243,10 @@
     </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-alert("BEFORE JS");
-</script>
-
-<script src="chattesellon.js"></script>
-
-<script>
-alert("AFTER JS");
+<script
+  src="chattesellon.js"
+  onload="alert('JS FILE LOADED!')"
+  onerror="alert('JS FILE FAILED TO LOAD!')">
 </script>
 
 </body>
