@@ -546,3 +546,5 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("INITIALIZATION ERROR: " + error.message);
     }
 });
+
+}
