@@ -357,12 +357,12 @@ postForm.addEventListener("submit", async event => {
     const message = postText.value.trim();
 
     if (!nickname || nickname.length > 30) {
-        alert("Неверный никнейм!");
+        alert("nickname must be less than 30 symbols lenght!");
         return;
     }
 
     if (!message && !selectedImage && !selectedGif) {
-        alert("Добавь текст или изображение!");
+        alert("add text or picture!");
         return;
     }
 
