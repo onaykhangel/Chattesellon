@@ -573,7 +573,9 @@ function initializeBoard() {
         updateCounter();
         loadPosts();
 
-        // Realtime вместо setInterval (опционально — см. ниже)
-        supabase.channel("posts-live")
-            .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
-            .on("postgre
+      // Realtime вместо setInterval
+supabase.channel("posts-live")
+    .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
+    .on("postgres_changes", { event: "*", schema: "public", table: "replies" }, () => loadPosts())
+    .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, () => loadPosts())
+    .subscribe();
