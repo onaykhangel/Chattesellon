@@ -1,737 +1,719 @@
+
 /* =====================================
-CHATTESELLON
-SUPABASE PUBLIC MESSAGE BOARD
+   CHATTESELLON
+   SUPABASE PUBLIC MESSAGE BOARD
 ===================================== */
+
+"use strict";
+
 alert("CHATTESELLON JS LOADED!");
+
 const SUPABASE_URL = "https://ywxkqpidkgagbnixoegv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol";
 
-const supabase = window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
-);
+let supabase;
+
+try {
+    if (!window.supabase || !window.supabase.createClient) {
+        throw new Error("Supabase library was not loaded!");
+    }
+
+    supabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+} catch (error) {
+    alert("SUPABASE INIT ERROR: " + error.message);
+    throw error;
+}
+
+
+/* =====================================
+   ERROR HANDLING
+===================================== */
+
+window.addEventListener("error", event => {
+    console.error(event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", event => {
+    console.error("PROMISE ERROR:", event.reason);
+});
+
+
+/* =====================================
+   VISITOR ID
+===================================== */
 
 const VISITOR_KEY = "chattesellon_visitor_id";
 
-let visitorId = localStorage.getItem(VISITOR_KEY);
+let visitorId;
 
-if (!visitorId) {
-visitorId = crypto.randomUUID();
-localStorage.setItem(VISITOR_KEY, visitorId);
+try {
+    visitorId = localStorage.getItem(VISITOR_KEY);
+
+    if (!visitorId) {
+        visitorId = crypto.randomUUID
+            ? crypto.randomUUID()
+            : "visitor-" + Date.now() + "-" + Math.random();
+
+        localStorage.setItem(VISITOR_KEY, visitorId);
+    }
+} catch (error) {
+    visitorId = "visitor-" + Date.now() + "-" + Math.random();
 }
+
+
+/* =====================================
+   STATE
+===================================== */
 
 let posts = [];
 let selectedImage = null;
 let selectedGif = null;
+let isLoading = false;
+
+
+/* =====================================
+   EMOJIS
+===================================== */
 
 const emojis = [
-"🤍", "🖤", "💙", "💜", "❤️",
-"♡", "♥", "☆", "★", "✦",
-"✧", "✩", "✪", "✿", "❀",
-"☾", "☽", "☁", "☂", "❄",
-"🌙", "⭐", "🌌", "🪐", "✨",
-"🌸", "🌷", "🦋", "🐈", "🐈‍⬛",
-"🐇", "🕊️", "🍓", "🍰", "🎀",
-"🎧", "🎮", "🎨", "📷", "💌"
+    "🤍", "🖤", "💙", "💜", "❤️",
+    "♡", "♥", "☆", "★", "✦",
+    "✧", "✩", "✪", "✿", "❀",
+    "☾", "☽", "☁", "☂", "❄",
+    "🌙", "⭐", "🌌", "🪐", "✨",
+    "🌸", "🌷", "🦋", "🐈", "🐈‍⬛",
+    "🐇", "🕊️", "🍓", "🍰", "🎀",
+    "🎧", "🎮", "🎨", "📷", "💌"
 ];
 
-/* =====================================
-HELPERS
-===================================== */
-
-function makeElement(tag, className, text) {
-const el = document.createElement(tag);
-
-if (className) el.className = className;  
-if (text !== undefined) el.textContent = text;  
-
-return el;
-
-}
-
-function validUrl(value) {
-if (!value) return "";
-
-try {  
-    const url = new URL(value);  
-
-    if (  
-        url.protocol === "https:" ||  
-        url.protocol === "http:"  
-    ) {  
-        return url.href;  
-    }  
-} catch (error) {}  
-
-return "";
-
-}
-
-function formatDate(date) {
-return new Date(date).toLocaleString("ru-RU", {
-day: "2-digit",
-month: "short",
-year: "numeric",
-hour: "2-digit",
-minute: "2-digit"
-});
-}
-
-function showError(error) {
-console.error(error);
-alert("error: " + (error.message || "can't do it"));
-}
 
 /* =====================================
-ELEMENTS
+   INITIALIZATION
 ===================================== */
 
-const postForm = document.getElementById("postForm");
-const postText = document.getElementById("postText");
-const postsContainer = document.getElementById("postsContainer");
-const emptyFeed = document.getElementById("emptyFeed");
+document.addEventListener("DOMContentLoaded", initializeBoard);
 
-const imageUpload = document.getElementById("imageUpload");
-const imagePreview = document.getElementById("imagePreview");
-
-const emojiPicker = document.getElementById("emojiPicker");
-const emojiList = document.getElementById("emojiList");
-
-const gifInputPanel = document.getElementById("gifInputPanel");
-const gifUrl = document.getElementById("gifUrl");
-
-const characterCounter =
-document.getElementById("characterCounter");
-
-/* =====================================
-EMOJI PICKER
-===================================== */
-
-function insertEmoji(input, emoji) {
-const start = input.selectionStart;
-const end = input.selectionEnd;
-
-input.value =  
-    input.value.substring(0, start) +  
-    emoji +  
-    input.value.substring(end);  
-
-input.focus();  
-
-const position = start + emoji.length;  
-
-input.setSelectionRange(position, position);  
-updateCounter();
-
-}
-
-function createEmojiPicker() {
-emojiList.replaceChildren();
-
-emojis.forEach(emoji => {  
-    const button = makeElement("button", "", emoji);  
-    button.type = "button";  
-
-    button.addEventListener("click", () => {  
-        insertEmoji(postText, emoji);  
-    });  
-
-    emojiList.appendChild(button);  
-});
-
-}
-
-document.getElementById("emojiButton")
-.addEventListener("click", () => {
-emojiPicker.hidden = !emojiPicker.hidden;
-});
-
-createEmojiPicker();
-
-/* =====================================
-CHARACTER COUNTER
-===================================== */
-
-function updateCounter() {
-characterCounter.textContent =
-postText.value.length + " / 2000";
-}
-
-postText.addEventListener("input", updateCounter);
-
-/* =====================================
-IMAGE UPLOAD
-===================================== */
-
-imageUpload.addEventListener("change", () => {
-const file = imageUpload.files[0];
-
-if (!file) return;  
-
-if (!file.type.startsWith("image/")) {  
-    alert("Выбери файл изображения.");  
-    imageUpload.value = "";  
-    return;  
-}  
-
-if (file.size > 700 * 1024) {  
-    alert("Максимальный размер изображения: 700 КБ.");  
-    imageUpload.value = "";  
-    return;  
-}  
-
-const reader = new FileReader();  
-
-reader.onload = () => {  
-    selectedImage = reader.result;  
-
-    imagePreview.replaceChildren();  
-
-    const image = makeElement("img");  
-    image.src = selectedImage;  
-    image.alt = "Image preview";  
-
-    imagePreview.appendChild(image);  
-
-    const remove = makeElement("button", "", "✕");  
-    remove.type = "button";  
-
-    remove.addEventListener("click", () => {  
-        selectedImage = null;  
-        imageUpload.value = "";  
-        imagePreview.replaceChildren();  
-    });  
-
-    imagePreview.appendChild(remove);  
-};  
-
-reader.readAsDataURL(file);
-
-});
-
-/* =====================================
-GIF
-===================================== */
-
-document.getElementById("gifButton")
-.addEventListener("click", () => {
-gifInputPanel.hidden = !gifInputPanel.hidden;
-});
-
-document.getElementById("addGifButton")
-.addEventListener("click", () => {
-const url = validUrl(gifUrl.value.trim());
-
-if (!url) {  
-        alert("Введи корректную ссылку на GIF.");  
-        return;  
-    }  
-
-    selectedGif = url;  
-
-    const image = makeElement("img");  
-    image.src = url;  
-    image.alt = "GIF preview";  
-    image.style.maxWidth = "120px";  
-    image.style.maxHeight = "100px";  
-
-    imagePreview.appendChild(image);  
-
-    gifInputPanel.hidden = true;  
-    gifUrl.value = "";  
-});
-
-/* =====================================
-LOAD DATA
-===================================== */
-
-async function loadPosts() {
-const { data: postData, error: postError } =
-await supabase
-.from("posts")
-.select("*")
-.order("created_at", { ascending: false });
-
-if (postError) {  
-    showError(postError);  
-    return;  
-}  
-
-const { data: replyData, error: replyError } =  
-    await supabase  
-        .from("replies")  
-        .select("*")  
-        .order("created_at", { ascending: true });  
-
-if (replyError) {  
-    showError(replyError);  
-    return;  
-}  
-
-const { data: likeData, error: likeError } =  
-    await supabase  
-        .from("likes")  
-        .select("*");  
-
-if (likeError) {  
-    showError(likeError);  
-    return;  
-}  
-
-const repliesById = new Map();  
-
-replyData.forEach(reply => {  
-    repliesById.set(reply.id, {  
-        ...reply,  
-        text: reply.content,  
-        avatar: reply.avatar_url,  
-        date: reply.created_at,  
-        likes: 0,  
-        liked: false,  
-        replies: []  
-    });  
-});  
-
-posts = postData.map(post => ({  
-    ...post,  
-    text: post.content,  
-    avatar: post.avatar_url,  
-    image: post.image_url,  
-    gif: post.gif_url,  
-    date: post.created_at,  
-    likes: 0,  
-    liked: false,  
-    replies: []  
-}));  
-
-const postMap = new Map(posts.map(post => [post.id, post]));  
-
-replyData.forEach(reply => {  
-    const item = repliesById.get(reply.id);  
-
-    if (reply.parent_reply_id) {  
-        const parent = repliesById.get(reply.parent_reply_id);  
-
-        if (parent) parent.replies.push(item);  
-    } else {  
-        const root = postMap.get(reply.post_id);  
-
-        if (root) root.replies.push(item);  
-    }  
-});  
-
-likeData.forEach(like => {  
-    const post = postMap.get(like.post_id);  
-
-    if (post) {  
-        post.likes++;  
-
-        if (like.visitor_id === visitorId) {  
-            post.liked = true;  
-        }  
-    }  
-});  
-
-renderPosts();
-
-}
-/* =====================================
-CREATE POST
-===================================== */
-
-postForm.addEventListener("submit", async event => {
-    event.preventDefault();
-alert("REACHED CREATE POST!");
-
-    const nickname = document
-        .getElementById("nickname")
-        .value.trim();
-
-    const avatar = validUrl(
-        document.getElementById("avatarUrl").value.trim()
-    );
-
-    const message = postText.value.trim();
-
-    if (!nickname || nickname.length > 30) {
-        alert("Неверный никнейм!");
-        return;
-    }
-
-    if (!message && !selectedImage && !selectedGif) {
-        alert("Добавь текст или изображение!");
-        return;
-    }
-
-    alert("SENDING TO SUPABASE...");
-
+function initializeBoard() {
     try {
-        const { data, error } = await supabase
-            .from("posts")
-            .insert({
-                nickname: nickname,
-                avatar_url: avatar || null,
-                content: message,
-                image_url: selectedImage,
-                gif_url: selectedGif
-            })
-            .select();
+        const postForm = document.getElementById("postForm");
+        const postText = document.getElementById("postText");
+        const postsContainer = document.getElementById("postsContainer");
+        const emptyFeed = document.getElementById("emptyFeed");
 
-        if (error) {
-            alert("SUPABASE ERROR: " + error.message);
-            return;
+        const imageUpload = document.getElementById("imageUpload");
+        const imagePreview = document.getElementById("imagePreview");
+
+        const emojiPicker = document.getElementById("emojiPicker");
+        const emojiList = document.getElementById("emojiList");
+        const emojiButton = document.getElementById("emojiButton");
+
+        const gifInputPanel = document.getElementById("gifInputPanel");
+        const gifUrl = document.getElementById("gifUrl");
+        const gifButton = document.getElementById("gifButton");
+        const addGifButton = document.getElementById("addGifButton");
+
+        const characterCounter = document.getElementById("characterCounter");
+        const sortPosts = document.getElementById("sortPosts");
+
+        const nicknameInput = document.getElementById("nickname");
+        const avatarInput = document.getElementById("avatarUrl");
+
+        const requiredElements = {
+            postForm,
+            postText,
+            postsContainer,
+            emptyFeed,
+            imageUpload,
+            imagePreview,
+            emojiPicker,
+            emojiList,
+            emojiButton,
+            gifInputPanel,
+            gifUrl,
+            gifButton,
+            addGifButton,
+            characterCounter,
+            sortPosts,
+            nicknameInput,
+            avatarInput
+        };
+
+        for (const [name, element] of Object.entries(requiredElements)) {
+            if (!element) {
+                throw new Error("HTML ELEMENT NOT FOUND: " + name);
+            }
         }
 
-        alert("POST SAVED!");
+        console.log("CHATTESELLON: ALL HTML ELEMENTS FOUND");
 
-        postForm.reset();
-        selectedImage = null;
-        selectedGif = null;
-        imagePreview.replaceChildren();
+        /* =====================================
+           HELPERS
+        ===================================== */
 
-        updateCounter();
-        await loadPosts();
+        function makeElement(tag, className, text) {
+            const element = document.createElement(tag);
 
-    } catch (error) {
-        alert("JAVASCRIPT ERROR: " + error.message);
-    }
-});
-/* =====================================
-FIND MESSAGE
-===================================== */
+            if (className) {
+                element.className = className;
+            }
 
-function findMessage(list, id) {
-for (const item of list) {
-if (item.id === id) return item;
+            if (text !== undefined) {
+                element.textContent = text;
+            }
 
-const found = findMessage(item.replies || [], id);  
+            return element;
+        }
 
-    if (found) return found;  
-}  
+        function validUrl(value) {
+            if (!value) return "";
 
-return null;
+            try {
+                const url = new URL(value);
 
-}
+                if (
+                    url.protocol === "https:" ||
+                    url.protocol === "http:"
+                ) {
+                    return url.href;
+                }
+            } catch (error) {}
 
-/* =====================================
-REPLY FORM
-===================================== */
+            return "";
+        }
 
-function createReplyForm(rootId, parentId) {
-const form = makeElement("form", "reply-form");
+        function formatDate(date) {
+            return new Date(date).toLocaleString("ru-RU", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
 
-form.dataset.rootId = rootId;  
-form.dataset.parentId = parentId;  
+        function showError(error) {
+            console.error(error);
 
-const nickname = makeElement("input");  
-nickname.type = "text";  
-nickname.placeholder = "Your nickname...";  
-nickname.maxLength = 30;  
-nickname.required = true;  
-nickname.name = "nickname";  
+            alert(
+                "ERROR: " +
+                (error.message || String(error))
+            );
+        }
 
-const avatar = makeElement("input");  
-avatar.type = "url";  
-avatar.placeholder = "Avatar URL (optional)";  
-avatar.name = "avatar";  
 
-const textarea = makeElement("textarea");  
-textarea.placeholder = "Write a reply...";  
-textarea.maxLength = 2000;  
-textarea.required = true;  
-textarea.name = "message";  
-
-const controls = makeElement("div", "reply-form-controls");  
+        /* =====================================
+           CHARACTER COUNTER
+        ===================================== */
 
-const cancel = makeElement("button", "", "CANCEL");  
-cancel.type = "button";  
+        function updateCounter() {
+            characterCounter.textContent =
+                postText.value.length + " / 2000";
+        }
 
-cancel.addEventListener("click", () => form.remove());  
-
-const send = makeElement("button", "", "REPLY ✦");  
-send.type = "submit";  
+        postText.addEventListener("input", updateCounter);
 
-controls.append(cancel, send);  
-form.append(nickname, avatar, textarea, controls);  
 
-return form;
-
-}
+        /* =====================================
+           EMOJI PICKER
+        ===================================== */
 
-/* =====================================
-RENDER MESSAGE
-===================================== */
+        function insertEmoji(input, emoji) {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
 
-function renderMessage(item, rootId, isReply = false) {
-const wrapper = makeElement(
-"article",
-isReply ? "reply" : "post"
-);
+            input.value =
+                input.value.substring(0, start) +
+                emoji +
+                input.value.substring(end);
 
-wrapper.dataset.itemId = item.id;  
+            input.focus();
 
-const header = makeElement("div", "post-header");  
+            const position = start + emoji.length;
 
-if (item.avatar) {  
-    const avatar = makeElement("img", "post-avatar");  
-    avatar.src = item.avatar;  
-    avatar.alt = item.nickname;  
+            input.setSelectionRange(position, position);
 
-    avatar.addEventListener("error", () => {  
-        avatar.replaceWith(  
-            makeElement("div", "post-avatar", "✦")  
-        );  
-    });  
+            updateCounter();
+        }
 
-    header.appendChild(avatar);  
-} else {  
-    header.appendChild(  
-        makeElement("div", "post-avatar", "✦")  
-    );  
-}  
+        function createEmojiPicker() {
+            emojiList.replaceChildren();
 
-const authorInfo = makeElement("div");  
-
-authorInfo.appendChild(  
-    makeElement("div", "post-author", item.nickname)  
-);  
+            emojis.forEach(emoji => {
+                const button = makeElement("button", "", emoji);
 
-authorInfo.appendChild(  
-    makeElement("div", "post-date", formatDate(item.date))  
-);  
+                button.type = "button";
 
-header.appendChild(authorInfo);  
-wrapper.appendChild(header);  
+                button.addEventListener("click", () => {
+                    insertEmoji(postText, emoji);
+                });
 
-if (item.text) {  
-    wrapper.appendChild(  
-        makeElement("div", "post-content", item.text)  
-    );  
-}  
+                emojiList.appendChild(button);
+            });
+        }
 
-if (item.image) {  
-    const image = makeElement("img", "post-image");  
-    image.src = item.image;  
-    image.alt = "Attached image";  
-    image.loading = "lazy";  
-    wrapper.appendChild(image);  
-}  
+        emojiButton.addEventListener("click", () => {
+            emojiPicker.hidden = !emojiPicker.hidden;
+        });
 
-if (item.gif) {  
-    const gif = makeElement("img", "post-image");  
-    gif.src = item.gif;  
-    gif.alt = "GIF";  
-    gif.loading = "lazy";  
-    wrapper.appendChild(gif);  
-}  
+        createEmojiPicker();
 
-const actions = makeElement("div", "post-actions");  
 
-const likeButton = makeElement(  
-    "button",  
-    "like-button",  
-    (item.liked ? "♥ " : "♡ ") + item.likes  
-);  
+        /* =====================================
+           IMAGE UPLOAD
+        ===================================== */
 
-likeButton.type = "button";  
-likeButton.dataset.action = "like";  
+        imageUpload.addEventListener("change", () => {
+            const file = imageUpload.files[0];
 
-const replyButton = makeElement(  
-    "button",  
-    "reply-button",  
-    "↩ Reply"  
-);  
+            if (!file) return;
 
-replyButton.type = "button";  
-replyButton.dataset.action = "reply";  
+            if (!file.type.startsWith("image/")) {
+                alert("Выбери файл изображения.");
+                imageUpload.value = "";
+                return;
+            }
 
-actions.append(likeButton, replyButton);  
-wrapper.appendChild(actions);  
+            if (file.size > 700 * 1024) {
+                alert("Максимальный размер изображения: 700 КБ.");
+                imageUpload.value = "";
+                return;
+            }
 
-if (item.replies && item.replies.length) {  
-    const container = makeElement("div", "replies-container");  
+            const reader = new FileReader();
 
-    item.replies.forEach(reply => {  
-        container.appendChild(  
-            renderMessage(reply, rootId, true)  
-        );  
-    });  
+            reader.onload = () => {
+                selectedImage = reader.result;
+                selectedGif = null;
 
-    wrapper.appendChild(container);  
-}  
+                gifUrl.value = "";
 
-return wrapper;
+                imagePreview.replaceChildren();
 
-}
+                const image = makeElement("img");
+                image.src = selectedImage;
+                image.alt = "Image preview";
 
-/* =====================================
-RENDER POSTS
-===================================== */
+                imagePreview.appendChild(image);
 
-function renderPosts() {
-postsContainer.replaceChildren();
+                const remove = makeElement("button", "", "✕");
 
-if (!posts.length) {  
-    postsContainer.appendChild(emptyFeed);  
-    emptyFeed.hidden = false;  
-    return;  
-}  
+                remove.type = "button";
 
-emptyFeed.hidden = true;  
+                remove.addEventListener("click", () => {
+                    selectedImage = null;
+                    imageUpload.value = "";
+                    imagePreview.replaceChildren();
+                });
 
-const sortedPosts = [...posts];  
+                imagePreview.appendChild(remove);
+            };
 
-const sort = document.getElementById("sortPosts").value;  
+            reader.onerror = () => {
+                alert("Could not read image.");
+            };
 
-if (sort === "oldest") {  
-    sortedPosts.reverse();  
-}  
+            reader.readAsDataURL(file);
+        });
 
-sortedPosts.forEach(post => {  
-    postsContainer.appendChild(  
-        renderMessage(post, post.id)  
-    );  
-});
 
-}
+        /* =====================================
+           GIF
+        ===================================== */
 
-/* =====================================
-SORTING
-===================================== */
+        gifButton.addEventListener("click", () => {
+            gifInputPanel.hidden = !gifInputPanel.hidden;
+        });
 
-document.getElementById("sortPosts")
-.addEventListener("change", renderPosts);
+        addGifButton.addEventListener("click", () => {
+            const url = validUrl(gifUrl.value.trim());
 
-/* =====================================
-LIKE AND REPLY BUTTONS
-===================================== */
+            if (!url) {
+                alert("Введи корректную ссылку на GIF.");
+                return;
+            }
 
-postsContainer.addEventListener("click", async event => {
-const button = event.target.closest("button[data-action]");
+            selectedGif = url;
+            selectedImage = null;
 
-if (!button) return;  
+            imageUpload.value = "";
 
-const messageElement = button.closest("[data-item-id]");  
+            imagePreview.replaceChildren();
 
-if (!messageElement) return;  
+            const image = makeElement("img");
+            image.src = url;
+            image.alt = "GIF preview";
 
-const id = messageElement.dataset.itemId;  
-const item = findMessage(posts, id);  
+            image.style.maxWidth = "120px";
+            image.style.maxHeight = "100px";
 
-if (!item) return;  
+            imagePreview.appendChild(image);
 
-if (button.dataset.action === "like") {  
-    if (item.id !== id || !posts.some(post => post.id === id)) {  
-        alert("Пока лайки доступны только для публикаций.");  
-        return;  
-    }  
+            const remove = makeElement("button", "", "✕");
 
-    button.disabled = true;  
+            remove.type = "button";
 
-    let result;  
+            remove.addEventListener("click", () => {
+                selectedGif = null;
+                imagePreview.replaceChildren();
+            });
 
-    if (item.liked) {  
-        result = await supabase  
-            .from("likes")  
-            .delete()  
-            .eq("post_id", id)  
-            .eq("visitor_id", visitorId);  
-    } else {  
-        result = await supabase  
-            .from("likes")  
-            .insert({  
-                post_id: id,  
-                visitor_id: visitorId  
-            });  
-    }  
+            imagePreview.appendChild(remove);
 
-    button.disabled = false;  
+            gifInputPanel.hidden = true;
+            gifUrl.value = "";
+        });
 
-    if (result.error) {  
-        showError(result.error);  
-        return;  
-    }  
 
-    await loadPosts();  
-}  
+        /* =====================================
+           LOAD POSTS
+        ===================================== */
 
-if (button.dataset.action === "reply") {  
-    const existing =  
-        messageElement.querySelector(":scope > .reply-form");  
+        async function loadPosts() {
+            if (isLoading) return;
 
-    if (existing) {  
-        existing.remove();  
-        return;  
-    }  
+            isLoading = true;
 
-    const rootPost = posts.find(post =>  
-        findMessage([post], id)  
-    );  
+            try {
+                const { data: postData, error: postError } =
+                    await supabase
+                        .from("posts")
+                        .select("*")
+                        .order("created_at", { ascending: false });
 
-    if (!rootPost) return;  
+                if (postError) throw postError;
 
-    const form = createReplyForm(rootPost.id, id);  
+                const { data: replyData, error: replyError } =
+                    await supabase
+                        .from("replies")
+                        .select("*")
+                        .order("created_at", { ascending: true });
 
-    messageElement.appendChild(form);  
-    form.querySelector("input").focus();  
-}
+                if (replyError) throw replyError;
 
-});
+                const { data: likeData, error: likeError } =
+                    await supabase
+                        .from("likes")
+                        .select("*");
 
-/* =====================================
-SEND REPLY
-===================================== */
+                if (likeError) throw likeError;
 
-postsContainer.addEventListener("submit", async event => {
-const form = event.target.closest(".reply-form");
+                const replyMap = new Map();
 
-if (!form) return;  
+                replyData.forEach(reply => {
+                    replyMap.set(reply.id, {
+                        ...reply,
+                        text: reply.content,
+                        avatar: reply.avatar_url,
+                        date: reply.created_at,
+                        replies: []
+                    });
+                });
 
-event.preventDefault();  
+                posts = postData.map(post => ({
+                    ...post,
+                    text: post.content,
+                    avatar: post.avatar_url,
+                    image: post.image_url,
+                    gif: post.gif_url,
+                    date: post.created_at,
+                    likes: 0,
+                    liked: false,
+                    replies: []
+                }));
 
-const rootId = form.dataset.rootId;  
-const parentId = form.dataset.parentId;  
+                const postMap = new Map(
+                    posts.map(post => [post.id, post])
+                );
 
-const nickname = form.elements.nickname.value.trim();  
+                replyData.forEach(reply => {
+                    const item = replyMap.get(reply.id);
 
-const avatar = validUrl(  
-    form.elements.avatar.value.trim()  
-);  
+                    if (reply.parent_reply_id) {
+                        const parent = replyMap.get(reply.parent_reply_id);
 
-const message = form.elements.message.value.trim();  
+                        if (parent) {
+                            parent.replies.push(item);
+                        }
+                    } else {
+                        const root = postMap.get(reply.post_id);
 
-if (!nickname || nickname.length > 30 || !message) {  
-    alert("Проверь никнейм и текст ответа.");  
-    return;  
-}  
+                        if (root) {
+                            root.replies.push(item);
+                        }
+                    }
+                });
 
-const { error } = await supabase  
-    .from("replies")  
-    .insert({  
-        post_id: rootId,  
-        parent_reply_id:  
-            parentId === rootId ? null : parentId,  
-        nickname: nickname,  
-        avatar_url: avatar || null,  
-        content: message  
-    });  
+                likeData.forEach(like => {
+                    const post = postMap.get(like.post_id);
 
-if (error) {  
-    showError(error);  
-    return;  
-}  
+                    if (post) {
+                        post.likes++;
 
-await loadPosts();
+                        if (like.visitor_id === visitorId) {
+                            post.liked = true;
+                        }
+                    }
+                });
 
-});
+                renderPosts();
 
-/* =====================================
-START
-===================================== */
+            } catch (error) {
+                console.error("LOAD POSTS ERROR:", error);
+                emptyFeed.hidden = false;
+                emptyFeed.querySelector("p").textContent =
+                    "Could not load publications: " + error.message;
 
-loadPosts();
-updateCounter();
+            } finally {
+                isLoading = false;
+            }
+        }
 
-setInterval(() => {
-loadPosts();
-}, 10000);
+
+        /* =====================================
+           CREATE POST
+        ===================================== */
+
+        postForm.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            alert("SUBMIT EVENT RECEIVED!");
+
+            const nickname = nicknameInput.value.trim();
+            const avatar = validUrl(avatarInput.value.trim());
+            const message = postText.value.trim();
+
+            if (!nickname || nickname.length > 30) {
+                alert("Неверный никнейм!");
+                return;
+            }
+
+            if (!message && !selectedImage && !selectedGif) {
+                alert("Добавь текст или изображение!");
+                return;
+            }
+
+            const publishButton =
+                postForm.querySelector(".publish-button");
+
+            publishButton.disabled = true;
+            publishButton.textContent = "PUBLISHING...";
+
+            try {
+                const { error } = await supabase
+                    .from("posts")
+                    .insert({
+                        nickname: nickname,
+                        avatar_url: avatar || null,
+                        content: message,
+                        image_url: selectedImage,
+                        gif_url: selectedGif
+                    });
+
+                if (error) throw error;
+
+                alert("POST SAVED!");
+
+                postForm.reset();
+
+                selectedImage = null;
+                selectedGif = null;
+
+                imagePreview.replaceChildren();
+                gifInputPanel.hidden = true;
+                emojiPicker.hidden = true;
+
+                updateCounter();
+
+                await loadPosts();
+
+            } catch (error) {
+                showError(error);
+
+            } finally {
+                publishButton.disabled = false;
+                publishButton.textContent = "PUBLISH ✦";
+            }
+        });
+
+
+        /* =====================================
+           FIND MESSAGE
+        ===================================== */
+
+        function findMessage(list, id) {
+            for (const item of list) {
+                if (item.id === id) return item;
+
+                const found = findMessage(
+                    item.replies || [],
+                    id
+                );
+
+                if (found) return found;
+            }
+
+            return null;
+        }
+
+
+        /* =====================================
+           REPLY FORM
+        ===================================== */
+
+        function createReplyForm(rootId, parentId) {
+            const form = makeElement("form", "reply-form");
+
+            form.dataset.rootId = rootId;
+            form.dataset.parentId = parentId;
+
+            const nickname = makeElement("input");
+
+            nickname.type = "text";
+            nickname.placeholder = "Your nickname...";
+            nickname.maxLength = 30;
+            nickname.required = true;
+            nickname.name = "nickname";
+
+            const avatar = makeElement("input");
+
+            avatar.type = "url";
+            avatar.placeholder = "Avatar URL (optional)";
+            avatar.name = "avatar";
+
+            const textarea = makeElement("textarea");
+
+            textarea.placeholder = "Write a reply...";
+            textarea.maxLength = 2000;
+            textarea.required = true;
+            textarea.name = "message";
+
+            const controls = makeElement(
+                "div",
+                "reply-form-controls"
+            );
+
+            const cancel = makeElement("button", "", "CANCEL");
+
+            cancel.type = "button";
+
+            cancel.addEventListener("click", () => {
+                form.remove();
+            });
+
+            const send = makeElement("button", "", "REPLY ✦");
+
+            send.type = "submit";
+
+            controls.append(cancel, send);
+            form.append(nickname, avatar, textarea, controls);
+
+            return form;
+        }
+
+
+        /* =====================================
+           RENDER MESSAGE
+        ===================================== */
+
+        function renderMessage(item, rootId, isReply = false) {
+            const wrapper = makeElement(
+                "article",
+                isReply ? "reply" : "post"
+            );
+
+            wrapper.dataset.itemId = item.id;
+
+            const header = makeElement("div", "post-header");
+
+            if (validUrl(item.avatar)) {
+                const avatar = makeElement("img", "post-avatar");
+
+                avatar.src = item.avatar;
+                avatar.alt = item.nickname || "Avatar";
+
+                avatar.addEventListener("error", () => {
+                    avatar.replaceWith(
+                        makeElement("div", "post-avatar", "✦")
+                    );
+                });
+
+                header.appendChild(avatar);
+
+            } else {
+                header.appendChild(
+                    makeElement("div", "post-avatar", "✦")
+                );
+            }
+
+            const authorInfo = makeElement("div");
+
+            authorInfo.appendChild(
+                makeElement(
+                    "div",
+                    "post-author",
+                    item.nickname || "Anonymous"
+                )
+            );
+
+            authorInfo.appendChild(
+                makeElement(
+                    "div",
+                    "post-date",
+                    formatDate(item.date)
+                )
+            );
+
+            header.appendChild(authorInfo);
+            wrapper.appendChild(header);
+
+            if (item.text) {
+                wrapper.appendChild(
+                    makeElement("div", "post-content", item.text)
+                );
+            }
+
+            if (validUrl(item.image)) {
+                const image = makeElement("img", "post-image");
+
+                image.src = item.image;
+                image.alt = "Attached image";
+                image.loading = "lazy";
+
+                wrapper.appendChild(image);
+            }
+
+            if (validUrl(item.gif)) {
+                const gif = makeElement("img", "post-image");
+
+                gif.src = item.gif;
+                gif.alt = "GIF";
+                gif.loading = "lazy";
+
+                wrapper.appendChild(gif);
+            }
+
+            const actions = makeElement("div", "post-actions");
+
+            const likeButton = makeElement(
+                "button",
+                "like-button",
+                (item.liked ? "♥ " : "♡ ") + (item.likes || 0)
+            );
+
+            likeButton.type = "button";
+            likeButton.dataset.action = "like";
+
+            const replyButton = makeElement(
+                "button",
+                "reply-button",
+                "↩ Reply"
+            );
+
+            replyButton.type = "button";
+            replyButton.dataset.action = "reply";
+
+            actions.append(likeButton, replyButton);
+            wrappe
