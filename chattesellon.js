@@ -4,6 +4,26 @@
 
 "use strict";
 
+<div id="bg-container"></div>
+  <script>
+    const container = document.getElementById('bg-container');
+    const symbols = ['*','+'];
+    
+    if (container) {
+      for (let i = 0; i < 60; i++) {
+        const span = document.createElement('span');
+        span.className = 'falling-symbol';
+        span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        span.style.left = Math.random() * 100 + 'vw';
+        span.style.animationDuration = (Math.random() * 7 + 3) + 's';
+        span.style.animationDelay = (Math.random() * 5) + 's';
+        span.style.fontSize = (Math.random() * 20 + 10) + 'px';
+        container.appendChild(span);
+      }
+    }
+    </script>
+   
+
 const SUPABASE_URL = "https://ywxkqpidkgagbnixoegv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol";
 
