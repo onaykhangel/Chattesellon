@@ -22,7 +22,6 @@
       }
     }
     </script>
-   
 
 const SUPABASE_URL = "https://ywxkqpidkgagbnixoegv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uFZC3FMn9y8qSLCpmgpqvw_sKPPrcol";
