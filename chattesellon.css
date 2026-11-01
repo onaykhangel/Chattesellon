@@ -1,48 +1,6 @@
 /* ==============================
    RESET & BASE
 ============================== */
-body { 
-  background: linear-gradient(black, #272F44);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-}
-   body {
-  cursor: url("Untitled225_20261031143400.png"), auto !important;
-   }
-p, h1, h2, h3, span {
-  cursor: url("Untitled225_20261031144103.png")
-  0 0, text;
-}
-a, button {
-  cursor: url("Untitled225_20261031144146.png")
-  0 0, pointer;
-}
-
-/*символы кап кап*/
-#bg-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  pointer-events: none; 
-  overflow: hidden; 
-}
-
-.falling-symbol {
-  position: absolute;
-  color: white !important; 
-  top: -50px;
-  animation: fall linear infinite;
-  opacity: 0.8;
-}
-
-@keyframes fall {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(110vh); }
-}
 * {
     box-sizing: border-box;
     margin: 0;
@@ -53,11 +11,28 @@ html {
     scroll-behavior: smooth;
 }
 
-body {
-    min-height: 100vh;
+body { 
+    background: linear-gradient(black, #272F44);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
     color: #F1F2F7;
     font-family: Arial, sans-serif;
     overflow-x: hidden;
+    min-height: 100vh;
+    cursor: url("Untitled225_20261031143400.png"), auto !important;
+}
+
+p, h1, h2, h3, span {
+    cursor: url("Untitled225_20261031144103.png") 0 0, text;
+}
+
+a, button, select, label {
+    cursor: url("Untitled225_20261031144146.png") 0 0, pointer;
+}
+
+input, textarea {
+    cursor: text;
 }
 
 /* Универсальный фикс: атрибут hidden всегда побеждает display */
@@ -65,61 +40,48 @@ body {
     display: none !important;
 }
 
-a, button, select, label {
-    cursor: pointer;
-}
-
-input, textarea {
-    cursor: text;
-}
-
-
 /* ==============================
-   FALLING SYMBOLS
+   ПАДАЮЩИЕ СИМВОЛЫ
 ============================== */
-
-.falling-symbols {
+#bg-container {
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0; /* БЫЛО -1, стало 0, чтобы быть поверх фона, но под контентом */
+    pointer-events: none; 
+    overflow: hidden; 
 }
 
-.falling-symbols span {
+.falling-symbol {
     position: absolute;
-    top: -30px;
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 16px;
-    animation: falling linear infinite;
+    color: white !important; 
+    top: -50px;
+    animation: fall linear infinite;
+    opacity: 0.8;
 }
 
-@keyframes falling {
-    from { transform: translateY(-30px) rotate(0deg); }
-    to   { transform: translateY(110vh) rotate(360deg); }
+@keyframes fall {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(110vh); }
 }
-
 
 /* ==============================
    MAIN CONTAINER
 ============================== */
-
 .chat-container {
     position: relative;
-    z-index: 1;
+    z-index: 1; /* Контент всегда поверх фона и звездочек */
     width: 92%;
     max-width: 900px;
     margin: 40px auto;
     padding: 20px;
 }
 
-
 /* ==============================
    HEADER
 ============================== */
-
 .chat-header {
     display: flex;
     justify-content: space-between;
@@ -163,11 +125,9 @@ input, textarea {
     text-shadow: 0 0 10px #FFFFFF;
 }
 
-
 /* ==============================
    PANELS
 ============================== */
-
 .welcome-panel,
 .create-post-panel,
 .feed-section {
@@ -203,11 +163,9 @@ input, textarea {
     letter-spacing: 2px;
 }
 
-
 /* ==============================
    FORM
 ============================== */
-
 .profile-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -260,11 +218,9 @@ input, textarea {
     line-height: 1.6;
 }
 
-
 /* ==============================
    ATTACHMENTS
 ============================== */
-
 .attachment-panel {
     display: flex;
     flex-wrap: wrap;
@@ -284,7 +240,6 @@ input, textarea {
     color: #FFFFFF;
     font-size: 11px;
     letter-spacing: 1px;
-    cursor: pointer;
     transition: 0.25s;
 }
 
@@ -293,11 +248,9 @@ input, textarea {
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
-
 /* ==============================
    EMOJI PICKER
 ============================== */
-
 .emoji-picker {
     padding: 12px;
     margin-bottom: 15px;
@@ -316,7 +269,6 @@ input, textarea {
     background: transparent;
     border: none;
     font-size: 23px;
-    cursor: pointer;
     transition: 0.2s;
 }
 
@@ -324,11 +276,9 @@ input, textarea {
     transform: scale(1.25);
 }
 
-
 /* ==============================
    GIF INPUT
 ============================== */
-
 .gif-input-panel {
     display: flex;
     gap: 10px;
@@ -341,7 +291,6 @@ input, textarea {
     border: 1px solid #FFFFFF;
     border-radius: 7px;
     color: #FFFFFF;
-    cursor: pointer;
     white-space: nowrap;
 }
 
@@ -349,11 +298,9 @@ input, textarea {
     background: #35446D;
 }
 
-
 /* ==============================
    IMAGE PREVIEW
 ============================== */
-
 .image-preview {
     display: flex;
     flex-wrap: wrap;
@@ -379,18 +326,15 @@ input, textarea {
     color: #FFFFFF;
     font-size: 12px;
     line-height: 1;
-    cursor: pointer;
 }
 
 .image-preview button:hover {
     background: rgba(255, 80, 80, 0.4);
 }
 
-
 /* ==============================
    PUBLISH CONTROLS
 ============================== */
-
 .publish-controls {
     display: flex;
     align-items: center;
@@ -411,7 +355,6 @@ input, textarea {
     color: #FFFFFF;
     font-size: 11px;
     letter-spacing: 2px;
-    cursor: pointer;
     transition: 0.3s;
 }
 
@@ -425,11 +368,9 @@ input, textarea {
     cursor: not-allowed;
 }
 
-
 /* ==============================
    FEED
 ============================== */
-
 .feed-heading {
     display: flex;
     justify-content: space-between;
@@ -451,11 +392,9 @@ input, textarea {
     outline: none;
 }
 
-
 /* ==============================
    EMPTY FEED
 ============================== */
-
 .empty-feed {
     text-align: center;
     padding: 45px 15px;
@@ -474,11 +413,9 @@ input, textarea {
     line-height: 1.8;
 }
 
-
 /* ==============================
    POSTS
 ============================== */
-
 .post {
     padding: 17px;
     margin-bottom: 15px;
@@ -542,11 +479,9 @@ input, textarea {
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-
 /* ==============================
    POST ACTIONS
 ============================== */
-
 .post-actions {
     display: flex;
     gap: 18px;
@@ -558,7 +493,6 @@ input, textarea {
     border: none;
     color: #C6CDDF;
     font-size: 12px;
-    cursor: pointer;
     transition: 0.2s;
 }
 
@@ -567,11 +501,9 @@ input, textarea {
     text-shadow: 0 0 8px #FFFFFF;
 }
 
-
 /* ==============================
    REPLIES
 ============================== */
-
 .replies-container {
     margin-top: 15px;
     margin-left: 20px;
@@ -592,8 +524,6 @@ input, textarea {
     height: 32px;
     font-size: 14px;
 }
-
-/* Форма ответа (создаётся в JS) */
 
 .reply-form {
     display: flex;
@@ -642,7 +572,6 @@ input, textarea {
     color: #FFFFFF;
     font-size: 11px;
     letter-spacing: 1px;
-    cursor: pointer;
     transition: 0.2s;
 }
 
@@ -655,11 +584,9 @@ input, textarea {
     cursor: not-allowed;
 }
 
-
 /* ==============================
    FOOTER
 ============================== */
-
 .chat-footer {
     text-align: center;
     padding: 25px 10px;
@@ -669,13 +596,10 @@ input, textarea {
     line-height: 2;
 }
 
-
 /* ==============================
    MOBILE
 ============================== */
-
 @media (max-width: 600px) {
-
     .chat-container {
         width: 100%;
         padding: 12px;
@@ -724,5 +648,4 @@ input, textarea {
     .publish-controls {
         align-items: flex-end;
     }
-
    }
