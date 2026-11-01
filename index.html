@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat te Selłóñ</title>
-
     <link rel="stylesheet" href="chattesellon.css">
 </head>
 
 <body>
-    <div class="falling-symbols" id="fallingSymbols"></div>
-
     <main class="chat-container">
 
         <!-- HEADER -->
@@ -26,14 +23,12 @@
             </nav>
         </header>
 
-
         <!-- INTRODUCTION -->
         <section class="welcome-panel">
             <h2>Welcome to Chat te Selłóñ.</h2>
             <p>full anonymous. share your thoughts.</p>
             <span class="online-status">✦ COMMUNITY BOARD</span>
         </section>
-
 
         <!-- CREATE POST -->
         <section class="create-post-panel">
@@ -123,7 +118,6 @@
             </form>
         </section>
 
-
         <!-- POSTS FILTER -->
         <section class="feed-section">
             <div class="feed-heading">
@@ -144,7 +138,6 @@
             </div>
         </section>
 
-
         <!-- FOOTER -->
         <footer class="chat-footer">
             <p>CHAT TE SELŁÓÑ © 2026</p>
@@ -153,29 +146,32 @@
 
     </main>
 
-    <!-- Supabase CDN — обязательно ДО твоего JS -->
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Твой JS — в конце body, DOM уже построен -->
+    <!-- Твой JS -->
     <script src="chattesellon.js"></script>
+    
+    <!-- Контейнер для падающих символов -->
     <div id="bg-container"></div>
-  <script>
-    const container = document.getElementById('bg-container');
-    const symbols = ['*','+'];
-    
-    if (container) {
-      for (let i = 0; i < 60; i++) {
-        const span = document.createElement('span');
-        span.className = 'falling-symbol';
-        span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        span.style.left = Math.random() * 100 + 'vw';
-        span.style.animationDuration = (Math.random() * 7 + 3) + 's';
-        span.style.animationDelay = (Math.random() * 5) + 's';
-        span.style.fontSize = (Math.random() * 20 + 10) + 'px';
-        container.appendChild(span);
-      }
-    }
+
+    <!-- Скрипт для падающих символов -->
+    <script>
+        const container = document.getElementById('bg-container');
+        const symbols = ['*','+'];
+        
+        if (container) {
+            for (let i = 0; i < 60; i++) {
+                const span = document.createElement('span');
+                span.className = 'falling-symbol';
+                span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                span.style.left = Math.random() * 100 + 'vw';
+                span.style.animationDuration = (Math.random() * 7 + 3) + 's';
+                span.style.animationDelay = (Math.random() * 5 + 0) + 's';
+                span.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                container.appendChild(span);
+            }
+        }
     </script>
-    
 </body>
 </html>
